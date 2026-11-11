@@ -3,6 +3,7 @@ window.SALARY_CHECK_CONFIG = {
   shareUrl: "",        // public address of this page, used by the share buttons
   submitEndpoint: "",  // URL that receives each submission (e.g. the Google Sheet script); empty = nothing saved
   metaPixelId: "",     // Meta Pixel ID; empty = no Meta tracking
+  dataUpdated: "November 2026",  // shown as "Updated ..." at the top and bottom; change it when the salary figures are refreshed
   highIncomeBands: ["10-15", "15-25", "25-50", "50+"],  // fixed-pay bands (₹ lakh) that count as 10 lakh and above
   highIncomeEvent: "SalaryCheck10LPlus"                 // Meta custom event sent for those visitors
 };
