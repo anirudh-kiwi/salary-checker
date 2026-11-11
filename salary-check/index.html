@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Salary Check</title>
+<meta name="description" content="Are you paid what you're worth? See typical fixed pay for your role, experience, employer, city and education in India, and get the numbers for your next pay conversation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200;300;400;500&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a deep-navy hero lit by one blue light streak; a white form card rises out of it; results follow as rounded
+   cards on a pale ground, the headline figure set huge and light; a black footer closes the page. */
+:root{
+  --night:#05081C; --night-2:#0B1440; --blue:#3D5AFE; --blue-hi:#7A96FF; --blue-soft:#E8ECFF;
+  --bg:#F2F3F6; --card:#FFFFFF; --fg:#0D1023; --muted:#5A6078; --faint:#8A90A8; --line:#E3E5EC; --line-2:#CDD1DC; --sunk:#F5F6F9;
+  --good:#1F8A4C; --good-soft:#E3F4EA; --warn:#A35C00; --warn-soft:#FFF1DC; --bad:#C2362F;
+  --f-display:"Inter Tight","Inter",ui-sans-serif,system-ui,sans-serif; --f-sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r-xl:28px; --r-lg:20px; --r-md:14px; --r-sm:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#070A18; --card:#10142B; --fg:#ECEEF7; --muted:#9BA1BD; --faint:#737A98; --line:#232846; --line-2:#323858; --sunk:#0B0F24;
+  --blue-soft:#1B2357; --good:#5FD08D; --good-soft:#123222; --warn:#F2B35E; --warn-soft:#352409; --bad:#F07A73; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#070A18; --card:#10142B; --fg:#ECEEF7; --muted:#9BA1BD; --faint:#737A98; --line:#232846; --line-2:#323858; --sunk:#0B0F24;
+  --blue-soft:#1B2357; --good:#5FD08D; --good-soft:#123222; --warn:#F2B35E; --warn-soft:#352409; --bad:#F07A73; color-scheme:dark }
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--night)}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;letter-spacing:-.02em;text-wrap:balance;margin:0}
+.in{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
+.tab{font-variant-numeric:tabular-nums}
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 85% 0%,#1A2A8C 0%,rgba(26,42,140,0) 55%),linear-gradient(180deg,var(--night) 0%,var(--night-2) 100%);color:#fff;padding-block:22px 160px;isolation:isolate}
+.hero::before{content:"";position:absolute;z-index:-1;left:52%;top:-30%;width:2px;height:160%;transform:rotate(28deg);background:linear-gradient(180deg,rgba(122,150,255,0),rgba(170,190,255,.95) 45%,rgba(122,150,255,0));box-shadow:0 0 40px 10px rgba(80,110,255,.45),0 0 120px 40px rgba(61,90,254,.25);filter:blur(.5px)}
+.hero::after{content:"";position:absolute;z-index:-1;left:-10%;right:-10%;bottom:-62%;height:80%;border-radius:50%;background:radial-gradient(closest-side,rgba(61,90,254,.35),rgba(61,90,254,0));border-top:1px solid rgba(160,180,255,.35)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.mark{font-family:var(--f-display);font-weight:500;font-size:17px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.mark i{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,var(--blue-hi) 45%,var(--blue) 100%);box-shadow:0 0 16px rgba(122,150,255,.8)}
+.bar span{font-size:13px;color:rgba(255,255,255,.6)}
+.hero h1{font-weight:300;font-size:clamp(44px,7.4vw,104px);line-height:.98;letter-spacing:-.045em;margin-top:clamp(48px,8vw,96px);max-width:12ch}
+.lede{font-size:clamp(16px,1.6vw,19px);color:rgba(255,255,255,.78);max-width:52ch;margin:24px 0 0}
+.stats{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;border-top:1px solid rgba(255,255,255,.14);padding-top:24px}
+.stats li{display:flex;flex-direction:column;gap:4px;min-width:0}
+.stats b{font-family:var(--f-display);font-weight:300;font-size:clamp(32px,4vw,48px);line-height:1;letter-spacing:-.03em}
+.stats span{font-size:13px;color:rgba(255,255,255,.66);max-width:24ch}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* form card */
+.formwrap{margin-top:-112px;position:relative;z-index:1}
+.card{background:var(--card);border-radius:var(--r-xl);box-shadow:0 1px 0 var(--line),0 24px 60px -24px rgba(5,8,28,.35)}
+.form{padding:clamp(22px,4vw,44px);display:flex;flex-direction:column;gap:28px}
+.fhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 24px}
+.fhead h2{font-size:clamp(26px,3vw,34px);font-weight:300}
+.fhead p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.trustline{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.trustline li{font-size:12.5px;color:var(--muted);background:var(--sunk);border:1px solid var(--line);border-radius:999px;padding:5px 12px;display:flex;align-items:center;gap:7px}
+.trustline li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--blue)}
+.groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 36px}
+@media (max-width:760px){.groups{grid-template-columns:minmax(0,1fr)}}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;min-width:0}
+legend{padding:0;margin-bottom:12px;font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f label{font-size:13.5px;font-weight:500;color:var(--fg)}
+.f input,.f select{font:inherit;font-size:15px;color:var(--fg);background:var(--sunk);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 13px;width:100%;min-width:0;height:46px}
+.f select{appearance:none;-webkit-appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 17px) 52%,calc(100% - 12px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+.f select:invalid,.f select option[value=""]{color:var(--faint)}
+.f input:focus,.f select:focus{outline:none;border-color:var(--blue);background:var(--card);box-shadow:0 0 0 4px rgba(61,90,254,.15)}
+.f input::-webkit-calendar-picker-indicator{display:none!important}
+.f .unit{position:relative}
+.f .unit input{padding-right:70px}
+.f .unit span{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none}
+.f .note{font-size:12.5px;color:var(--muted)}
+.f .note:empty{display:none}
+.f .note b{color:var(--blue);font-weight:600}
+.f.bad input,.f.bad select{border-color:var(--bad);box-shadow:0 0 0 3px rgba(194,54,47,.12)}
+.check{outline:2px dashed var(--warn);outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;border-top:1px solid var(--line);padding-top:24px}
+.btn{font:inherit;font-size:15px;font-weight:600;border:0;border-radius:999px;padding:14px 26px;background:var(--blue);color:#fff;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;min-height:48px}
+.btn:hover{background:#2F4BEA}
+.btn.ghost{background:transparent;color:var(--fg);box-shadow:inset 0 0 0 1px var(--line-2)}
+.btn.ghost:hover{background:var(--sunk)}
+.btn.sm{font-size:13.5px;padding:9px 16px;min-height:40px}
+.privacy{flex-basis:100%;margin:0;font-size:12.5px;color:var(--muted);max-width:70ch}
+.err{color:var(--bad);font-size:13.5px}
+
+/* results */
+.report{padding-block:48px 24px;display:flex;flex-direction:column;gap:20px;scroll-margin-top:16px}
+.summary{position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r-xl);color:#fff;padding:clamp(24px,4vw,48px);display:flex;flex-direction:column;gap:28px;
+  background:radial-gradient(90% 120% at 100% 0%,#2238C9 0%,rgba(34,56,201,0) 60%),linear-gradient(160deg,var(--night) 0%,var(--night-2) 70%)}
+.summary::before{content:"";position:absolute;z-index:-1;right:18%;top:-40%;width:1.5px;height:180%;transform:rotate(24deg);background:linear-gradient(180deg,rgba(122,150,255,0),rgba(170,190,255,.8) 50%,rgba(122,150,255,0));box-shadow:0 0 30px 8px rgba(80,110,255,.35)}
+.kicker{font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.62)}
+.sumtop{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:28px;align-items:end}
+@media (max-width:760px){.sumtop{grid-template-columns:minmax(0,1fr)}}
+.est{font-family:var(--f-display);font-weight:200;font-size:clamp(64px,11vw,148px);line-height:.9;letter-spacing:-.05em;margin-top:12px}
+.est small{font-family:var(--f-sans);font-size:15px;font-weight:500;letter-spacing:0;color:rgba(255,255,255,.66);margin-left:10px;vertical-align:.6em}
+.range{font-size:15px;color:rgba(255,255,255,.78);margin-top:14px}
+.range b{color:#fff;font-weight:600}
+.you{display:flex;flex-direction:column;gap:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:var(--r-lg);padding:20px;backdrop-filter:blur(6px)}
+.you .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:14px;color:rgba(255,255,255,.72)}
+.you .row b{font-size:18px;font-weight:600;color:#fff;white-space:nowrap}
+.chip{display:inline-flex;align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.02em;padding:5px 12px;border-radius:999px}
+.chip.under{background:#FFE2B8;color:#5C3300}
+.chip.near{background:#DCE3FF;color:#16226B}
+.chip.at{background:#CDEFD9;color:#0F4A27}
+.chip.above{background:#fff;color:#0B1440}
+.scale{position:relative;height:60px}
+.scale .track{position:absolute;left:0;right:0;top:26px;height:6px;background:rgba(255,255,255,.14);border-radius:999px}
+.scale .band{position:absolute;top:26px;height:6px;background:linear-gradient(90deg,var(--blue),var(--blue-hi));border-radius:999px}
+.scale .tick{position:absolute;top:20px;width:2px;height:18px;background:#fff;border-radius:2px}
+.scale .me{position:absolute;top:20px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(122,150,255,.45),0 0 18px rgba(122,150,255,.9)}
+.scale .lab{position:absolute;top:44px;font-size:11.5px;color:rgba(255,255,255,.66);transform:translateX(-50%);white-space:nowrap}
+.scale .melab{position:absolute;top:0;font-size:12px;font-weight:600;color:#fff;transform:translateX(-50%);white-space:nowrap}
+.gap{margin:0;font-size:16px;color:rgba(255,255,255,.88);max-width:64ch}
+.gap b{color:#fff;font-weight:600}
+
+.sec{padding:clamp(22px,4vw,40px);display:flex;flex-direction:column;gap:22px}
+.sec h2{font-size:clamp(26px,3.2vw,38px);font-weight:300}
+.sub{margin:6px 0 0;color:var(--muted);font-size:14.5px;max-width:64ch}
+.line{margin:0;font-size:15px;max-width:68ch}
+.line b{font-weight:600}
+.bars{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.bars li{display:grid;grid-template-columns:minmax(0,120px) minmax(0,1fr) 84px;gap:16px;align-items:center}
+@media (max-width:560px){.bars li{grid-template-columns:minmax(0,1fr) auto}.bars .track{grid-column:1/-1;grid-row:2}}
+.bars .nm{font-size:14px;color:var(--muted);min-width:0}
+.bars .nm em{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--blue-soft);color:var(--blue);border-radius:999px;padding:2px 8px;margin-left:8px}
+.bars li.me .nm{font-weight:600;color:var(--fg)}
+.bars .track{position:relative;height:10px;background:var(--sunk);border-radius:999px}
+.bars .rng{position:absolute;top:0;bottom:0;background:var(--line-2);border-radius:999px}
+.bars .med{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--fg);border-radius:2px}
+.bars li.me .rng{background:linear-gradient(90deg,var(--blue),var(--blue-hi))}
+.bars .mark{position:absolute;top:-7px;bottom:-7px;width:0;border-left:2px dashed var(--bad)}
+.bars .val{text-align:right;font-family:var(--f-display);font-size:20px;font-weight:400;white-space:nowrap;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:16px;height:8px;border-radius:999px;margin-right:6px;vertical-align:0}
+
+.rhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px}
+.seg{display:inline-flex;border-radius:999px;padding:4px;background:var(--sunk);border:1px solid var(--line)}
+.seg button{font:inherit;font-size:13.5px;font-weight:600;border:0;border-radius:999px;padding:9px 18px;background:transparent;color:var(--muted);cursor:pointer;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--night-2);color:#fff}
+.rgrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px}
+@media (max-width:860px){.rgrid{grid-template-columns:minmax(0,1fr)}}
+.points{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:16px;counter-reset:p}
+.points li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;font-size:15px;counter-increment:p}
+.points li::before{content:counter(p);width:28px;height:28px;border-radius:50%;border:1px solid var(--line-2);color:var(--blue);font-size:12.5px;font-weight:600;display:grid;place-items:center}
+.points b{font-weight:600}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+.ask{border-radius:var(--r-lg);padding:20px 22px;display:flex;flex-direction:column;gap:4px;background:var(--sunk);border:1px solid var(--line)}
+.ask .k{font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.ask .amt{font-family:var(--f-display);font-weight:200;font-size:clamp(48px,6vw,64px);line-height:1;letter-spacing:-.04em}
+.ask .pct{font-size:13.5px;color:var(--muted)}
+.msg{white-space:pre-wrap;font-size:14px;border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;margin:0;background:var(--card);overflow-wrap:anywhere}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.ok{font-size:13px;font-weight:600;color:var(--good)}
+.excuse{border-radius:var(--r-lg);padding:26px;display:flex;flex-direction:column;gap:12px;background:var(--blue-soft)}
+.excuse .tag{font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--blue)}
+.excuse q{font-family:var(--f-display);font-weight:300;font-size:clamp(22px,2.6vw,30px);line-height:1.25;letter-spacing:-.015em;quotes:"“" "”"}
+.excuse p{margin:0;font-size:14.5px;color:var(--muted)}
+
+.share{display:grid;grid-template-columns:240px minmax(0,1fr);gap:32px;align-items:center}
+@media (max-width:700px){.share{grid-template-columns:minmax(0,1fr)}}
+.scard{aspect-ratio:9/16;max-width:240px;width:100%;border-radius:var(--r-lg);color:#fff;padding:20px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+  background:radial-gradient(80% 60% at 85% 10%,rgba(122,150,255,.55),rgba(122,150,255,0)),linear-gradient(160deg,#05081C,#0B1440 55%,#1A2FB8)}
+.scard .t{font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.7}
+.scard .h{font-family:var(--f-display);font-weight:200;font-size:52px;line-height:1;letter-spacing:-.04em}
+.scard.fun .h{font-size:17px;font-weight:400;line-height:1.3;letter-spacing:-.01em}
+.scard .s{font-size:12.5px;opacity:.85;margin-top:8px}
+.scard .ft{display:flex;justify-content:space-between;align-items:center;font-size:11.5px}
+.scard .ft b{font-weight:600}
+.scard .ft span{background:#fff;color:#0B1440;border-radius:999px;padding:5px 10px;font-weight:600}
+
+footer{background:#000;color:rgba(255,255,255,.62);margin-top:40px;padding-block:40px calc(40px + env(safe-area-inset-bottom,0px));font-size:13px}
+footer .in{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px 40px}
+footer b{color:#fff;font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:-.01em}
+footer p{margin:6px 0 0;max-width:62ch}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+.ready{font-size:14px;font-weight:600;color:var(--blue);text-decoration:none}
+.ready:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+
+<header class="hero">
+  <div class="in">
+    <div class="bar"><span class="mark"><i aria-hidden="true"></i>Salary Check</span><span>India · Updated November 2026</span></div>
+    <h1>Are you paid what you're worth?</h1>
+    <p class="lede">Tell us about your role, experience, employer and education. We'll show what people like you typically earn, and give you the numbers to take into your next pay conversation.</p>
+    <ul class="stats">
+      <li><b class="tab">16</b><span>job functions benchmarked</span></li>
+      <li><b class="tab">55+</b><span>named employers recognised</span></li>
+      <li><b class="tab">55+</b><span>colleges ranked by tier</span></li>
+      <li id="trustCountItem" hidden><b class="tab" id="trustCount"></b><span>professionals have checked their pay</span></li>
+      <li id="rangeItem"><b>Range</b><span>not one number, so you see where most people like you fall</span></li>
+    </ul>
+  </div>
+</header>
+
+<div class="in formwrap">
+  <form class="card form" id="f" novalidate>
+    <div class="fhead">
+      <div><h2>Your profile</h2><p>Takes about 30 seconds. Every answer changes your benchmark.</p></div>
+      <ul class="trustline">
+        <li>Customised to your role, experience, education and college</li>
+        <li>Benchmarks from published salary surveys of Indian professionals</li>
+      </ul>
+    </div>
+    <div class="groups">
+      <fieldset>
+        <legend>Role</legend>
+        <div class="f"><label for="role">Job function</label><select id="role" required></select></div>
+        <div class="f"><label for="yrs">Total work experience</label><div class="unit"><input id="yrs" type="number" inputmode="numeric" min="0" max="40" step="1" placeholder="e.g. 5"><span>years</span></div></div>
+      </fieldset>
+      <fieldset>
+        <legend>Employer</legend>
+        <div class="f"><label for="emp">Company</label><input id="emp" type="text" list="empList" placeholder="Start typing, or enter any company" autocomplete="organization"><datalist id="empList"></datalist><span class="note" id="empNote"></span></div>
+        <div class="two">
+          <div class="f"><label for="empType">Type of employer</label><select id="empType" required></select></div>
+          <div class="f"><label for="city">City</label><select id="city" required></select></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Education</legend>
+        <div class="f"><label for="edu">Highest education</label><select id="edu" required></select></div>
+        <div class="f" id="collegeF"><label for="college">College or university</label><input id="college" type="text" list="colList" placeholder="Start typing, or enter any college" autocomplete="off"><datalist id="colList"></datalist><span class="note" id="colNote"></span></div>
+        <div class="f" id="colTierF" hidden><label for="colTier">How well known is your college?</label><select id="colTier"><option value="T4">A typical college</option><option value="T3">A leading private or state college</option><option value="T2">A top national institute (NIT, IIIT, newer IIT or IIM)</option><option value="T1">One of India's very top institutes</option></select><span class="note">It's not in our list yet, so tell us roughly where it stands.</span></div>
+      </fieldset>
+      <fieldset>
+        <legend>Your pay</legend>
+        <div class="f"><label for="ctc">Annual fixed pay</label><div class="unit"><input id="ctc" type="number" inputmode="decimal" min="0.5" max="500" step="0.5" placeholder="e.g. 9"><span>₹ lakh</span></div><span class="note">Your CTC without bonus or variable pay, before tax.</span></div>
+      </fieldset>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" id="submitBtn">See my benchmark</button>
+      <span class="err" id="formErr" role="alert" hidden></span>
+      <a class="ready" id="readyLink" href="#report" hidden>Your results are ready below ↓</a>
+      <p class="privacy">We save your answers, without your name or contact details, to keep these benchmarks accurate.</p>
+    </div>
+  </form>
+</div>
+
+<main class="in report" id="report" hidden>
+  <section class="summary" id="summary" aria-live="polite">
+    <div class="sumtop">
+      <div>
+        <span class="kicker">Typical fixed pay for your profile</span>
+        <div class="est tab" id="est">—</div>
+        <div class="range" id="range"></div>
+      </div>
+      <div class="you">
+        <span class="chip" id="chip">—</span>
+        <div class="row"><span>Your fixed pay</span><b class="tab" id="yCtc">—</b></div>
+        <div class="row"><span>Difference</span><b class="tab" id="yDiff">—</b></div>
+        <div class="row"><span id="yNextK">Next milestone</span><b class="tab" id="yNext">—</b></div>
+      </div>
+    </div>
+    <div class="scale" id="scale" aria-hidden="true"></div>
+    <p class="gap" id="gap"></p>
+  </section>
+  <table hidden><tbody id="factors"></tbody></table>
+
+  <section class="card sec">
+    <div><h2>How pay grows with experience</h2><p class="sub" id="ldSub"></p></div>
+    <ol class="bars" id="ldBars"></ol>
+    <div class="legend"><span><i style="background:var(--line-2)"></i>Typical range</span><span><i style="background:var(--fg);width:3px;height:12px"></i>Median</span><span><i style="border-left:2px dashed var(--bad);width:0;height:12px;border-radius:0"></i>Your fixed pay</span></div>
+    <p class="line" id="ldLine"></p>
+  </section>
+
+  <section class="card sec" id="raise">
+    <div class="rhead">
+      <div><h2>Your case for a raise</h2><p class="sub" id="raiseSub">Data points to take into your next conversation with your manager.</p></div>
+      <div class="seg" role="group" aria-label="Tone"><button type="button" id="mSerious" aria-pressed="true">Serious</button><button type="button" id="mFun" aria-pressed="false">Non-serious</button></div>
+    </div>
+    <div class="rgrid" id="seriousView">
+      <ol class="points" id="points"></ol>
+      <div class="stack">
+        <div class="ask"><span class="k">Suggested ask</span><span class="amt tab" id="askAmt">—</span><span class="pct" id="askPct"></span></div>
+        <p class="msg" id="script"></p>
+        <div class="row"><button class="btn sm ghost" type="button" id="copyScript">Copy message</button><span class="ok" id="okScript" hidden>Copied</span></div>
+      </div>
+    </div>
+    <div class="stack" id="funView" hidden>
+      <div class="excuse" id="excuse"><span class="tag">Not HR-approved</span><q id="ex1"></q><p id="ex2"></p></div>
+      <div class="rgrid">
+        <div class="ask"><span class="k">Asking for</span><span class="amt tab" id="funAmt">—</span><span class="pct" id="funPct"></span></div>
+        <p class="msg" id="funScript"></p>
+      </div>
+      <div class="row">
+        <button class="btn sm" type="button" id="shuffle">Another excuse</button>
+        <a class="btn sm ghost" id="waFun" href="https://wa.me/" target="_blank" rel="noopener">Share on WhatsApp</a>
+        <button class="btn sm ghost" type="button" id="copyFun">Copy</button><span class="ok" id="okFun" hidden>Copied</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card sec share">
+    <div class="scard" id="scard">
+      <span class="t" id="scT">What people like me earn</span>
+      <div><div class="h tab" id="scH">—</div><div class="s" id="scS"></div></div>
+      <div class="ft"><b>Salary Check</b><span>Check yours →</span></div>
+    </div>
+    <div class="stack">
+      <h2 id="shareH">Share the benchmark</h2>
+      <p class="sub" id="shareSub">Shares the typical pay for your profile, not your own salary.</p>
+      <p class="msg" id="shareText"></p>
+      <div class="row">
+        <button class="btn sm" type="button" id="dlStory" hidden>Download image</button>
+        <a class="btn sm ghost" id="wa" href="https://wa.me/" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn sm ghost" id="xpost" href="https://twitter.com/intent/tweet" target="_blank" rel="noopener">X</a>
+        <a class="btn sm ghost" id="li" href="https://www.linkedin.com/sharing/share-offsite/" target="_blank" rel="noopener">LinkedIn</a>
+        <button class="btn sm ghost" type="button" id="copyShare">Copy text</button><span class="ok" id="okShare" hidden>Copied</span>
+      </div>
+      <span class="err" id="dlErr" hidden></span>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="in">
+    <div><b>Salary Check</b><p>Estimates for information only, not financial or career advice. Figures are annual fixed pay in ₹ lakh, before tax. Last updated November 2026.</p></div>
+  </div>
+</footer>
+
+<script src="/salary-check/config.js"></script>
+<script>
+/* ---------- config (values live in config.js) ---------- */
+const CFG = window.SALARY_CHECK_CONFIG || {};
+const SHARE_URL = CFG.shareUrl || "";          // the page's public URL, so every share links back
+const SUBMIT_ENDPOINT = CFG.submitEndpoint || "";    // a URL that accepts a JSON POST of each submission
+const COUNT_MIN = 50;          // show the "professionals have checked their pay" count only from this many
+const BANDS=[1,4,7.5,12,17];const BAND_LABELS=["0–2 yrs","3–5 yrs","6–9 yrs","10–14 yrs","15+ yrs"];const ROLES={software:{label:"Software engineering",tech:true,es:1,typ:"grad_eng",pay:[6.5,11.1,14.5,20,23.2]},data:{label:"Data & analytics",tech:true,es:.85,typ:"grad_eng",pay:[6.4,10.7,13.5,18,21]},product:{label:"Product management",tech:true,es:.5,typ:"grad_eng",pay:[11.8,19.2,22.9,28.9,30.2]},design:{label:"UI/UX design",tech:true,es:.8,typ:"grad",pay:[5,9.1,12.1,21.7,23]},sales:{label:"Sales & business development",tech:false,typ:"grad",pay:[3.3,4.6,6.8,8.9,10.4]},perf:{label:"Performance / digital marketing",tech:false,typ:"grad",pay:[3.9,6.9,9.1,12.9,15]},brand:{label:"Brand & content marketing",tech:false,typ:"grad",pay:[5.4,7.9,9.7,12.4,14.5]},hr:{label:"HR & recruitment",tech:false,typ:"grad",pay:[3.2,4.8,5.9,8.7,13]},finance:{label:"Finance & accounts",tech:false,typ:"grad",pay:[4.7,6.3,7.1,10.1,14]},ca:{label:"Chartered accountancy",tech:false,typ:"ca",pay:[9.8,11.1,12.5,15.5,18.6]},banking:{label:"Banking (relationship & branch)",tech:false,typ:"grad",pay:[3.5,5,6,7.1,10]},ops:{label:"Operations & supply chain",tech:false,typ:"grad",pay:[4.6,7.1,8.7,14.3,18.6]},support:{label:"Customer support",tech:false,typ:"grad",pay:[2.8,3.8,4.2,5.4,6.2]},core:{label:"Core engineering",tech:false,typ:"grad_eng",pay:[3.5,5.3,6.5,10.9,12.5]},consulting:{label:"Management consulting",tech:false,typ:"mba",pay:[9.6,14.8,17.6,21.9,26]},teaching:{label:"Teaching",tech:false,typ:"pg",pay:[3.5,4,4.2,6,7]}};const EMP_TYPES={it_services:{label:"IT services (TCS, Infosys, Wipro…)",m:.96,hike:6.6,pl:"IT services firms"},gcc:{label:"Global capability centre (GCC)",m:1.25,hike:9.4,pl:"GCCs"},gcc_top:{label:"Top global bank / retail GCC (JPMorgan, Walmart…)",m:2.2,hike:9.4,pl:"top global bank and retail GCCs"},big_tech:{label:"Global tech (Google, Microsoft, Amazon…)",m:3,hike:9.5,pl:"global tech companies"},internet:{label:"Indian unicorn (Flipkart, Swiggy, Zomato…)",m:2.3,hike:9.5,pl:"Indian unicorns"},startup:{label:"Funded startup",m:1.3,hike:9.5,pl:"funded startups"},mnc:{label:"MNC, non-tech (FMCG, pharma, auto…)",m:1.15,hike:9.1,pl:"non-tech MNCs"},strategy:{label:"Strategy consulting (McKinsey, BCG, Bain…)",m:2,hike:9.1,pl:"strategy consulting firms"},big4:{label:"Big Four / consulting firm",m:1.1,hike:9.1,pl:"Big Four and consulting firms"},conglom:{label:"Large Indian company (Reliance, Tata, L&T…)",m:.9,hike:9.3,pl:"large Indian companies"},bank:{label:"Bank / NBFC",m:1,hike:8.5,pl:"banks and NBFCs"},psu:{label:"Government / PSU",m:1,hike:9.1,pl:"government and PSU employers"},small:{label:"Small business (under ~50 people)",m:.8,hike:9.1,pl:"small businesses"},other:{label:"Other / not sure",m:1,hike:9.1,pl:"other employers"}};const EMPLOYERS=[["TCS","it_services",1,"tata consultancy|\\btcs\\b"],["Infosys","it_services",.98,"infosys"],["Wipro","it_services",1.03,"wipro"],["HCLTech","it_services",.8,"\\bhcl"],["Cognizant","it_services",.93,"cognizant|\\bcts\\b"],["Accenture","it_services",1.08,"accenture"],["IBM","it_services",1.3,"\\bibm\\b"],["Tech Mahindra","it_services",.8,"tech ?mahindra|techm"],["LTIMindtree","it_services",.8,"ltimindtree|\\blti\\b|mindtree"],["Capgemini","it_services",.77,"capgemini"],["Google","big_tech",4,"google|alphabet"],["Microsoft","big_tech",3.6,"microsoft"],["Amazon","big_tech",3.66,"amazon|\\baws\\b"],["Adobe","big_tech",2.1,"adobe"],["Oracle","big_tech",2,"oracle"],["LinkedIn","big_tech",3.8,"linkedin"],["Uber","big_tech",4,"\\buber\\b"],["Salesforce","big_tech",2.6,"salesforce"],["JPMorgan Chase","gcc_top",2.6,"jp ?morgan|jpmc"],["Goldman Sachs","gcc_top",3.2,"goldman"],["American Express","gcc_top",2.4,"american express|\\bamex\\b"],["Walmart Global Tech","gcc_top",3,"walmart"],["Morgan Stanley","gcc_top",2.3,"morgan stanley"],["Citi","gcc_top",2.5,"\\bciti"],["Wells Fargo","gcc_top",2.3,"wells fargo"],["UBS","gcc_top",2.1,"\\bubs\\b"],["HSBC","gcc",1.2,"hsbc"],["Fidelity","gcc",1.6,"fidelity"],["Flipkart","internet",2.5,"flipkart"],["Swiggy","internet",2.75,"swiggy"],["Zomato (Eternal)","internet",2.9,"zomato|eternal|blinkit"],["Zepto","internet",2.8,"zepto"],["Meesho","internet",1.9,"meesho"],["Nykaa","internet",1.8,"nykaa"],["MakeMyTrip","internet",2.5,"makemytrip|\\bmmt\\b"],["Razorpay","internet",2.1,"razorpay"],["PhonePe","internet",null,"phonepe|phone pe"],["Bajaj Finance","bank",1.2,"bajaj fin"],["HDFC Bank","bank",null,"hdfc"],["ICICI Bank","bank",null,"icici"],["Axis Bank","bank",null,"axis bank"],["Kotak Mahindra Bank","bank",null,"kotak"],["SBI","psu",null,"state bank of india|\\bsbi\\b"],["McKinsey & Company","strategy",null,"mckinsey"],["Boston Consulting Group","strategy",null,"boston consulting|\\bbcg\\b"],["Bain & Company","strategy",null,"\\bbain\\b"],["Kearney","strategy",null,"kearney"],["Oliver Wyman","strategy",null,"oliver wyman"],["Roland Berger","strategy",null,"roland berger"],["Deloitte","big4",null,"deloitte"],["PwC","big4",null,"pwc|pricewaterhouse"],["EY","big4",null,"ernst|\\bey\\b"],["KPMG","big4",null,"kpmg"],["Reliance","conglom",.85,"reliance|\\bjio"],["Tata Group (non-IT)","conglom",null,"tata (motors|steel|power|sons|consumer|capital)|titan|trent"],["Larsen & Toubro","conglom",null,"larsen|\\bl ?& ?t\\b"],["Mahindra & Mahindra","conglom",null,"mahindra (&|and) mahindra|\\bm&m\\b"]].map((([name,type,idx,re])=>({name:name,type:type,idx:idx,re:new RegExp(re,"i")})));const CITIES={blr:["Bengaluru",1.15],hyd:["Hyderabad",1.05],mum:["Mumbai",1.08],ncr:["Delhi NCR",1],pune:["Pune",.95],chn:["Chennai",.93],kol:["Kolkata",.82],amd:["Ahmedabad",.82],t2:["Another tier-2 city",.85],small:["A smaller town",.75],remote:["Remote / other",1]};const EDU={class12:{label:"Class 12 or below",m:.85,late:.6},diploma:{label:"Diploma",m:.88,late:.75},grad:{label:"Graduate (BA, BSc, BCom, BBA…)",m:1},grad_eng:{label:"Graduate in engineering (BTech, BE)",m:1.4},mbbs:{label:"MBBS",m:1.4},pg:{label:"Postgraduate (MA, MSc, MCom…)",m:1.3},mtech:{label:"MTech / ME",m:1.6},md:{label:"MD / MS (medicine)",m:2},mba:{label:"MBA / PGDM",m:1.5},ca:{label:"Chartered Accountant",m:1.7},phd:{label:"PhD",m:1.6}};const TIERS={T1:{label:"Tier 1",desc:"Top IITs, IIMs, IISc, BITS, ISB, XLRI…",m:1.85},T2:{label:"Tier 2",desc:"Newer IITs and IIMs, NITs, IIITs, DTU, SRCC…",m:1.45},T3:{label:"Tier 3",desc:"Leading private and state colleges",m:1.25},T4:{label:"Other college",desc:"",m:1}};const RETENTION=[[1,1],[4,.8],[7.5,.65],[12,.5],[17,.4]];const COLLEGES=[["IIT Bombay","T1","iit ?bombay|\\biitb\\b|indian institute of technology,? bombay"],["IIT Delhi","T1","iit ?delhi|\\biitd\\b|indian institute of technology,? delhi"],["IIT Madras","T1","iit ?madras|\\biitm\\b|indian institute of technology,? madras"],["IIT Kanpur","T1","iit ?kanpur|\\biitk\\b|indian institute of technology,? kanpur"],["IIT Kharagpur","T1","iit ?kharagpur|iit ?kgp|indian institute of technology,? kharagpur"],["IIT Roorkee","T1","iit ?roorkee|\\biitr\\b|indian institute of technology,? roorkee"],["IIT Guwahati","T1","iit ?guwahati|\\biitg\\b|indian institute of technology,? guwahati"],["IIT (BHU) Varanasi","T1","iit ?\\(?bhu|iit varanasi"],["IISc Bangalore","T1","\\biisc\\b|indian institute of science"],["IIIT Hyderabad","T1","iiit ?hyderabad|\\biiith\\b|international institute of information technology,? hyderabad"],["BITS Pilani","T1","\\bbits\\b|birla institute of technology and science"],["IIM Ahmedabad","T1","iim ?ahmedabad|\\biima\\b|indian institute of management,? ahmedabad"],["IIM Bangalore","T1","iim ?bangalore|iim ?bengaluru|\\biimb\\b|indian institute of management,? (bangalore|bengaluru)"],["IIM Calcutta","T1","iim ?calcutta|iim ?kolkata|\\biimc\\b|indian institute of management,? calcutta"],["IIM Lucknow","T1","iim ?lucknow|\\biiml\\b"],["IIM Kozhikode","T1","iim ?kozhikode|\\biimk\\b"],["IIM Indore","T1","iim ?indore"],["IIM Mumbai (NITIE)","T1","iim ?mumbai|nitie"],["ISB","T1","\\bisb\\b|indian school of business"],["XLRI","T1","xlri|xavier school of management"],["FMS Delhi","T1","\\bfms\\b|faculty of management studies"],["SPJIMR","T1","spjimr|s\\.? ?p\\.? jain"],["MDI Gurgaon","T1","\\bmdi\\b|management development institute"],["IIT Hyderabad","T2","iit ?hyderabad"],["IIT (ISM) Dhanbad","T2","ism dhanbad|iit ?\\(?ism|iit dhanbad"],["Other IITs","T2","\\biit\\b|indian institute of technology"],["NIT Trichy","T2","nit ?trichy|nit ?tiruchirappalli|\\bnitt\\b"],["NIT Warangal","T2","nit ?warangal|\\bnitw\\b"],["NIT Surathkal","T2","nitk|nit ?surathkal|nit karnataka"],["Other NITs","T2","\\bnit\\b|national institute of technology|\\bmnnit\\b|\\bmanit\\b|\\bvnit\\b|\\bsvnit\\b|\\bmnit\\b"],["IIIT Delhi / Bangalore / Allahabad","T2","\\biiit\\b|indian institute of information technology|iiitm"],["DTU","T2","\\bdtu\\b|delhi technological|delhi college of engineering"],["NSUT (NSIT)","T2","\\bnsut\\b|\\bnsit\\b|netaji subhas"],["Jadavpur University","T2","jadavpur"],["Jamia Millia Islamia","T2","jamia"],["IIFT","T2","\\biift\\b|indian institute of foreign trade"],["Other IIMs","T2","\\biim\\b|indian institute of management"],["SRCC","T2","\\bsrcc\\b|shri ram college of commerce"],["St. Stephen's College","T2","stephen"],["Lady Shri Ram College","T2","\\blsr\\b|lady shri ram"],["Hindu College","T2","hindu college"],["VIT","T3","\\bvit\\b|vellore institute"],["Manipal (MIT / MAHE)","T3","manipal|\\bmahe\\b"],["SRM","T3","\\bsrm\\b"],["Thapar","T3","thapar"],["PES University","T3","\\bpes\\b|pes university|pesit"],["RV College of Engineering","T3","\\brvce\\b|r\\.? ?v\\.? college"],["BIT Mesra","T3","bit mesra|birla institute of technology,? mesra"],["COEP","T3","\\bcoep\\b|college of engineering,? pune"],["PSG Tech","T3","\\bpsg\\b"],["SSN College of Engineering","T3","\\bssn\\b"],["Anna University (CEG)","T3","anna university|\\bceg\\b|college of engineering,? guindy"],["Amrita","T3","amrita"],["KIIT","T3","\\bkiit\\b|kalinga institute"],["Chandigarh University","T3","chandigarh university"],["NMIMS","T3","nmims|narsee monjee"],["Symbiosis","T3","symbiosis|\\bsibm\\b|\\bsimc\\b|\\bscms\\b"],["Christ University","T3","christ (university|college)"],["Delhi University colleges","T3","delhi university|university of delhi|hansraj|kirori mal|miranda house|\\bdu\\b"]].map((([name,tier,re])=>({name:name,tier:tier,re:new RegExp(re,"i")})));const TECH=["big_tech","internet","startup"],INET=["big_tech","internet"],GCCS=["gcc","gcc_top"],CORP=["mnc","conglom","big4"],CONS=["mnc","conglom"];const MPT={software:[{seg:TECH,src:"Software Development · Software, enterprise & fintech",r:[[4,10,30,60],[10,15,50,100],[15,20,80,150],[20,99,150,200]]},{seg:GCCS,src:"Application Development & Engineering · Mid-large captive centres",r:[[5,10,40,65],[10,15,50,85],[15,20,75,100],[20,99,90,130]]},{seg:[...CORP,"bank"],src:"Application / ERP · Corporate IT, MNC & domestic companies",r:[[5,10,25,50],[10,15,45,75],[15,20,70,100],[20,99,95,120]]}],data:[{seg:TECH,src:"Business Intelligence & Analytics · Startups, product, internet & fintech",r:[[3,6,20,40],[6,10,40,60],[10,15,60,90],[15,99,90,120]]},{seg:[...GCCS,...CORP,"bank"],src:"Business Intelligence & Analytics · MNC banks, financial institutions, consulting & GCCs",r:[[3,6,15,35],[6,10,35,50],[10,15,55,75],[15,99,75,100]]}],product:[{seg:[...TECH,...GCCS,...CORP,"bank"],src:"Product Management · Software, enterprise & fintech",r:[[4,10,35,70],[10,15,70,140],[15,20,140,200],[20,99,180,250]]}],perf:[{seg:INET,src:"Growth / Performance Marketing · Consumer tech",r:[[3,5,18,35],[5,10,25,80],[10,15,60,100],[15,22,80,150],[22,99,110,220]]},{seg:CONS,ped:true,src:"Digital Marketing · FMCG, top-20 B-school candidates",r:[[3,5,25,45],[5,10,40,80],[10,15,65,130]]},{seg:CONS,src:"Digital Marketing · Consumer durables",r:[[3,5,16,24],[5,10,30,60],[10,15,50,110],[15,22,60,100]]}],brand:[{seg:INET,src:"Brand Marketing · Consumer tech",r:[[3,5,20,40],[5,10,35,65],[10,15,45,95],[15,22,75,150],[22,99,120,180]]},{seg:CONS,ped:true,src:"Brand / Category Management · FMCG, top-20 B-school candidates",r:[[3,5,28,45],[5,10,40,100],[10,15,80,160],[15,22,110,250],[22,99,150,350]]},{seg:CONS,src:"Brand / Category Management · Consumer durables",r:[[3,5,19,28],[5,10,24,65],[10,15,45,110],[15,22,70,120]]}],sales:[{seg:TECH,src:"Field Sales · Enterprise software / SaaS",r:[[3,5,10,30],[5,10,18,60],[10,15,30,100],[15,22,60,150],[22,99,60,200]]},{seg:CONS,ped:true,src:"Sales / Channel Management · FMCG, top-20 B-school candidates",r:[[3,5,28,40],[5,10,35,100],[10,15,75,160],[15,22,110,250],[22,99,150,350]]},{seg:CONS,src:"Sales / Channel Management · Consumer durables",r:[[3,5,12,26],[5,10,24,55],[10,15,40,90],[15,22,70,140],[22,99,80,180]]}],hr:[{seg:["big_tech","internet",...GCCS,...CORP],src:"HR Generalist / Business Partner · Large & mid-cap listed companies",r:[[3,5,25,35],[5,10,35,60],[10,15,45,85],[15,99,60,120]]},{seg:["startup"],src:"HR Generalist / Business Partner · Small-cap & non-listed companies",r:[[5,10,25,40],[10,15,30,55],[15,99,45,80]]},{seg:["bank"],src:"HR Generalist / Business Partner · Banking & financial services, large companies",r:[[5,10,25,40],[10,15,40,65],[15,99,65,120]]}],finance:[{seg:[...TECH,...GCCS,...CORP,"bank"],src:"Finance Manager · Finance & accounting, general",r:[[3,5,18,30],[5,10,20,60],[10,15,35,65],[15,99,40,70]]}],ca:[{seg:[...TECH,...GCCS,...CORP,"bank"],src:"Finance Manager · Finance & accounting, general",r:[[3,5,18,30],[5,10,20,60],[10,15,35,65],[15,99,40,70]]}],ops:[{seg:[...INET,...CONS],ped:true,src:"Supply Chain · FMCG, retail & e-commerce, top business graduates",r:[[3,5,25,40],[5,10,40,70],[10,15,70,100],[15,99,90,140]]},{seg:[...INET,...CONS],src:"Supply Chain · FMCG, retail & e-commerce, non-business-school graduates",r:[[3,5,12,18],[5,10,20,45],[10,15,35,65],[15,99,60,125]]}],consulting:[{seg:["strategy"],src:"Strategy consulting · Tier 1 global firms",r:[[0,3,16,21],[3,6,35,45],[6,10,60,85],[10,15,85,130],[15,99,130,180]]},{seg:["big4"],src:"Consulting · Consulting arms of audit and technology firms",r:[[0,3,12,15],[3,6,28,35],[6,10,35,48],[10,15,55,90],[15,99,95,130]]},{seg:["other","small","startup"],src:"Consulting · Domestic boutique firms",r:[[0,3,12,18],[3,6,22,30],[6,10,32,50],[10,15,55,70],[15,99,90,130]]}],core:[{seg:["mnc","conglom"],src:"Civil / Electrical / Mechanical / Instrumentation Engineer · Engineering & manufacturing",r:[[3,5,6,20],[5,10,15,40],[10,15,40,65],[15,99,60,80]]}]};function mpTable(p){const ts=(MPT[p.role]||[]).filter((t=>t.seg.includes(p.empType)));if(!ts.length)return null;const ped=p.edu==="mba"&&p.tier==="T1";return ts.find((t=>ped?t.ped:!t.ped))||ts.find((t=>!t.ped))||ts[0]}function mpRow(t,yrs){return t.r.find((([a,b])=>yrs>=a&&yrs<b))||null}const SPREAD={p25:.78,p75:1.3};const MARKET={hike2027:9.1,hike2026:9,attrition:18,switchAsk:21};const SOURCES=[];function interpLog(xs,ys,x){if(x<=xs[0])return ys[0]*Math.pow(ys[1]/ys[0],(x-xs[0])/(xs[1]-xs[0])*.5);for(let i=1;i<xs.length;i++)if(x<=xs[i]){const t=(x-xs[i-1])/(xs[i]-xs[i-1]);return ys[i-1]*Math.pow(ys[i]/ys[i-1],t)}const last=ys[ys.length-1];return last*Math.pow(1.01,Math.min(x,30)-xs[xs.length-1])}function rolePay(role,yrs){return interpLog(BANDS,ROLES[role].pay,Math.max(0,yrs))}function retention(yrs){return interpLog(RETENTION.map((r=>r[0])),RETENTION.map((r=>r[1])),Math.max(1,Math.min(17,yrs)))}function employerFactor(role,typeKey,named){const t=EMP_TYPES[typeKey]||EMP_TYPES.other;let m=named&&named.idx?named.idx:t.m;m=Math.pow(m,ROLES[role].es??.4);return m}function eduFactor(role,edu,yrs){const e=EDU[edu]||EDU.grad,typ=EDU[ROLES[role].typ];let m=e.m;if(e.late){const t=Math.min(1,Math.max(0,(yrs-2)/13));m=e.m+(e.late-e.m)*t}return Math.min(1.4,Math.max(.7,Math.pow(m/typ.m,.5)))}function collegeFactor(tier,yrs,emp=1){const m=(TIERS[tier]||TIERS.T4).m;return Math.pow(m,retention(yrs)/Math.pow(Math.max(1,emp),.7))}function matchEmployer(text){const t=(text||"").trim();if(!t)return null;return EMPLOYERS.find((e=>e.name.toLowerCase()===t.toLowerCase()))||EMPLOYERS.find((e=>e.re.test(t)))||null}function matchCollege(text){const t=(text||"").trim();if(!t)return null;return COLLEGES.find((c=>c.name.toLowerCase()===t.toLowerCase()))||COLLEGES.find((c=>c.re.test(t)))||null}function estimatePS(p){const base=rolePay(p.role,p.yrs),emp=employerFactor(p.role,p.empType,p.named);const f={emp:emp,city:CITIES[p.city][1],edu:eduFactor(p.role,p.edu,p.yrs),college:collegeFactor(p.tier,p.yrs,emp)};const med=base*f.emp*f.city*f.edu*f.college;return{mode:"ps",base:base,f:f,med:med,p25:med*SPREAD.p25,p75:med*SPREAD.p75}}function mpAt(t,yrs){const pts=t.r.map((([a,b,lo,hi])=>({c:(a+Math.min(b,a+8))/2,lo:lo,hi:hi})));const y=Math.max(yrs,t.r[0][0]);if(y<=pts[0].c)return pts[0];if(y>=pts[pts.length-1].c)return pts[pts.length-1];for(let i=1;i<pts.length;i++)if(y<=pts[i].c){const A=pts[i-1],B=pts[i],k=(y-A.c)/(B.c-A.c),g=(u,v)=>u*Math.pow(v/u,k);return{lo:g(A.lo,B.lo),hi:g(A.hi,B.hi)}}}function estimate(p){const t=mpTable(p);if(t){const row=mpRow(t,p.yrs);if(row){const v=mpAt(t,p.yrs);return{mode:"mp",table:t,row:row,med:(v.lo+v.hi)/2,p25:v.lo,p75:v.hi}}const first=t.r[0],start=first[0];if(p.yrs>=start-2&&p.yrs<start){const ps=estimatePS(p),w=(p.yrs-(start-2))/2,mid=(first[2]+first[3])/2,k=Math.pow(mid/ps.med,w);return{...ps,mode:"blend",table:t,w:w,med:ps.med*k,p25:ps.p25*k,p75:ps.p75*k}}}return estimatePS(p)}
+
+/* ================= Page ================= */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function L(x){ if(x>=100) return "₹"+(x/100).toFixed(x>=1000?0:2).replace(/\.?0+$/,"")+" Cr"; return "₹"+(x<10? (Math.round(x*10)/10).toString() : Math.round(x))+" L"; }
+const pctTxt=f=>{ const p=Math.round((f-1)*100); return p===0?"No change":(p>0?"+":"−")+Math.abs(p)+"%"; };
+function track(n,p){ try{ window.mixpanel && window.mixpanel.track(n,p);}catch(e){} try{ window.kiwiTrack && window.kiwiTrack(n,p);}catch(e){} }
+const ctcBand=c=>c<5?"<5":c<8?"5-8":c<10?"8-10":c<15?"10-15":c<25?"15-25":c<50?"25-50":"50+";
+const median=a=>{ const s=[...a].sort((x,y)=>x-y), m=s.length>>1; return s.length%2? s[m] : (s[m-1]+s[m])/2; };
+
+/* Non-serious excuses. {ctc} {ask} {role} {sharma} are filled in. */
+const EXCUSES=[
+  "Shaadi karni hai boss. Ladki {ask} maang rahi hai, aur main abhi {ctc} pe hoon. Math aap khud kar lo.",
+  "Rishta aunty ne biodata pe 'salary negotiable' likh diya. Ab negotiate aapko karna padega.",
+  "Sharma ji ka beta same {role} mein hai aur {sharma} le raha hai. Ghar pe mera dinner band hai.",
+  "Shaadi karni hai boss. Ladke wale bol rahe hain {ask} se kam pe 'family settled nahi lagti'.",
+  "Landlord ne itna rent badhaya hai ki technically main uske liye kaam karta hoon. Aapke liye toh part-time hai.",
+  "iPhone ki EMI aur mera notice period, dono ek hi din khatam ho rahe hain. Choice aapki hai.",
+  "Goa plan 2019 se pending hai. Group chat ne last warning de di hai.",
+  "US wala cousin har Diwali video call pe 'kitna milta hai' poochta hai. Is saal main sach bolna chahti hoon.",
+  "Weekend pe bhi Slack check karta hoon. Main 7-day employee hoon, 5-day salary pe.",
+  "Papa ka retirement plan hai: 'Tu hai na.' Bas isliye.",
+  "Mera horoscope bol raha hai is mahine 'dhan laabh' hai. Aap astrology ke against toh nahi ho na?",
+  "Mere credit card ki limit meri salary se zyada hai. Bank ko mujh pe aapse zyada bharosa hai.",
+  "Biodata mein 'well-settled' likhna hai. Abhi sirf 'settled' hoon, woh bhi PG mein.",
+  "Mummy ne kitty party mein bol diya ki main 'senior manager' hoon. Ab designation aur salary dono match karwani hai.",
+  "Har appraisal mein 'next cycle mein dekhte hain' sunta hoon. Ab woh cycle main khud chalaunga. Ola wali nahi, salary wali."
+];
+
+/* ---------- setup ---------- */
+function opts(sel,list,val){ sel.innerHTML=list.map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join(""); sel.value=val; }
+opts($("role"),[["","Choose your job function"],...Object.entries(ROLES).map(([k,r])=>[k,r.label])],"");
+opts($("empType"),[["","Choose the type of employer"],...Object.entries(EMP_TYPES).map(([k,t])=>[k,t.label])],"");
+opts($("city"),[["","Choose your city"],...Object.entries(CITIES).map(([k,c])=>[k,c[0]])],"");
+opts($("edu"),[["","Choose your highest education"],...Object.entries(EDU).map(([k,e])=>[k,e.label])],"");
+["role","empType","city","edu"].forEach(id=>{ $(id).options[0].disabled=true; });
+$("empList").innerHTML=EMPLOYERS.map(e=>`<option value="${esc(e.name)}"></option>`).join("");
+$("colList").innerHTML=COLLEGES.filter(c=>!/^Other /.test(c.name)).map(c=>`<option value="${esc(c.name)}"></option>`).join("");
+
+
+let S={}, mode="serious", exIdx=[0,2], submitted=false, empTypeTouched=false, eduTouched=false;
+let db=null, uid=null, canWrite=true, salaries=[], DL=null;
+
+function readProfile(){
+  const role=$("role").value, yrs=Math.max(0,Math.min(40,parseFloat($("yrs").value)||0));
+  const named=matchEmployer($("emp").value);
+  if(named && !empTypeTouched) $("empType").value=named.type;
+  if(role==="ca"&&!eduTouched) $("edu").value="ca";
+  const isCA=$("edu").value==="ca"; $("collegeF").hidden=isCA;
+  const typed=$("college").value.trim(), col=isCA?null:matchCollege(typed);
+  $("colTierF").hidden=isCA||!typed||!!col;
+  const tier=col?col.tier:(!isCA&&typed?$("colTier").value:"T4");
+  return {role,yrs,named,empType:$("empType").value,city:$("city").value,edu:$("edu").value,college:col||(typed&&!isCA?{name:typed,tier,custom:true}:null),tier,ctc:parseFloat($("ctc").value)};
+}
+function fill(t){ return t.replace(/\{(\w+)\}/g,(m,k)=>{ const v={ctc:L(S.ctc),ask:L(S.funAsk),role:ROLES[S.role].label,sharma:L(S.ctc*1.7)}[k]; return v===undefined?m:v; }); }
+
+/* ---------- render ---------- */
+function render(){
+  const p=readProfile();
+  // field notes
+  $("empNote").innerHTML = p.named ? `Recognised: <b>${esc(p.named.name)}</b>` : ($("emp").value.trim()? "Not in our list, and that's fine. Pick the type of employer below." : "");
+  $("colNote").innerHTML = p.college&&!p.college.custom ? `Recognised: <b>${esc(TIERS[p.college.tier].label)}</b> · ${esc(TIERS[p.college.tier].desc)}` : "";
+  if(!submitted || missing().length) return;
+  const e=estimate(p); const {med,p25,p75}=e; const ctc=p.ctc;
+  S={...p,...e};
+
+  // headline
+  $("est").innerHTML=L(med).replace(" L","<small>lakh a year</small>").replace(" Cr","<small>crore a year</small>");
+  $("range").innerHTML= e.mode==="mp" ? `Market range <b>${L(p25)} – ${L(p75)}</b> · for your role, employer type and experience` : `Typical range <b>${L(p25)} – ${L(p75)}</b> · middle half of similar profiles`;
+  $("yCtc").textContent=L(ctc);
+  const diff=ctc-med; $("yDiff").textContent=(diff>=0?"+":"−")+L(Math.abs(diff)).slice(0)+` (${diff>=0?"+":"−"}${Math.abs(Math.round(diff/med*100))}%)`;
+  const band = ctc<p25?"A" : ctc<med*0.97?"B" : ctc<=p75?"C" : "E"; S.band=band;
+  const CH={A:["under","Below the typical range"],B:["near","Below the median"],C:["at","Within the typical range"],E:["above","Above the typical range"]};
+  $("chip").className="chip "+CH[band][0]; $("chip").textContent=CH[band][1];
+
+  // next milestone
+  const nextBand=BANDS.find(b=>b>p.yrs+0.5);
+  const nextExp = nextBand? estimate({...p,yrs:nextBand}).med : null;
+  let nextK, nextV, gapHTML;
+  if(band==="A"||band==="B"){ nextK="Reach the median"; nextV=med;
+    gapHTML=`People with a profile like yours typically earn about <b>${L(med)}</b>. That's <b>${L(med-ctc)} a year</b> more than you, and it's the strongest number to take into your next pay conversation.`; }
+  else if(band==="C"){ nextK="Top of typical range"; nextV=p75;
+    gapHTML=`You're paid in line with the market for your profile. The top quarter of similar profiles earn <b>${L(p75)}</b> or more, <b>${L(p75-ctc)}</b> above you.`; }
+  else { nextK="Next experience band"; nextV=nextExp||ctc*1.091;
+    gapHTML=`You're paid above the typical range for your profile. Further gains are more likely to come from a bigger role or more scope than from market adjustments.`; }
+  $("yNextK").textContent=nextK; $("yNext").textContent=L(nextV);
+  $("gap").innerHTML=gapHTML;
+  drawScale(p25,med,p75,ctc);
+
+  // factors
+  if(e.mode==="mp"){
+    const [ya,yb]=e.row, yl=yb>=99?`${ya}+ years`:`${ya}–${yb} years`;
+    const fx=[[`${ROLES[p.role].label}, ${yl}`,`Market pay range for ${e.table.src.split(" · ")[0].toLowerCase()} roles in ${e.table.src.split(" · ")[1].toLowerCase()}. Base salary, excluding bonus.`,`${L(e.p25)}–${L(e.p75)}`]];
+    if(e.table.ped) fx.push([`${EDU[p.edu].label.replace(/ \(.*$/,"")}, ${p.college.name}`,"Graduates of top business schools have their own, higher pay range in this segment, so we used it.","Table used"]);
+    fx.push(["Employer, city, education and college","Not added on top. The range already covers the spread across employers, cities and backgrounds; the midpoint is the typical figure.","Included"]);
+    $("factors").innerHTML=fx.map(([what,why,v])=>`<tr><td><span class="what">${esc(what)}</span><span class="why">${esc(why)}</span></td><td></td><td>${esc(v)}</td></tr>`).join("")
+      +`<tr class="total"><td>Typical pay for your profile (midpoint)</td><td>${L(med)}</td><td>${L(p25)}–${L(p75)}</td></tr>`;
+  } else {
+  const fx=[
+    [`${ROLES[p.role].label}, ${Math.round(p.yrs)} yrs`, e.mode==="blend"?`Market median for this role and experience.`:"Market median for this role and experience.", null, e.base],
+    [p.named?p.named.name:EMP_TYPES[p.empType].label.replace(/ \(.*$/,""), p.named&&p.named.idx?`Pay at this employer vs the India average for the role.`:`Typical pay at this type of employer vs the market.`, e.f.emp],
+    [CITIES[p.city][0], "City pay level vs the national median.", e.f.city],
+    [EDU[p.edu].label, `Compared with the usual qualification for ${ROLES[p.role].label.toLowerCase()}.`, e.f.edu],
+    [p.college?p.college.name:"Other college", p.college?`${TIERS[p.college.tier].label} college premium, adjusted for ${Math.round(p.yrs)} yrs of experience.`:"No college premium applied.", e.f.college]
+  ];
+  if(e.mode==="blend") fx.push([`Moving into the ${e.table.r[0][0]}–${e.table.r[0][1]} year market range`, `Pay for this profile is typically ${L(e.table.r[0][2])}–${L(e.table.r[0][3])} from ${e.table.r[0][0]} years. You're close to that point, so we move partway toward it.`, med/(e.base*e.f.emp*e.f.city*e.f.edu*e.f.college)]);
+  let run=e.base;
+  $("factors").innerHTML=fx.map(([what,why,f,base],i)=>{
+    if(i===0) return `<tr><td><span class="what">${esc(what)}</span><span class="why">${esc(why)}</span></td><td>${L(base)}</td><td>Starting point</td></tr>`;
+    run*=f; const cls=Math.abs(f-1)<0.005?"flat":(f>1?"up":"down");
+    return `<tr><td><span class="what">${esc(what)}</span><span class="why">${esc(why)}</span></td><td class="${cls}">${pctTxt(f)}</td><td>${L(run)}</td></tr>`;
+  }).join("")+`<tr class="total"><td>Typical pay for your profile</td><td>${L(med)}</td><td>${L(p25)}–${L(p75)}</td></tr>`;
+  }
+
+  // experience ladder
+  const lad=BANDS.map((b,i)=>{ const x=estimate({...p,yrs:b}); return {name:BAND_LABELS[i],me: (i===0&&p.yrs<=2.5)||(i===1&&p.yrs>2.5&&p.yrs<=5.5)||(i===2&&p.yrs>5.5&&p.yrs<=9.5)||(i===3&&p.yrs>9.5&&p.yrs<=14.5)||(i===4&&p.yrs>14.5),p25:x.p25,med:x.med,p75:x.p75}; });
+  $("ldSub").textContent=`Typical pay for ${ROLES[p.role].label.toLowerCase()} at each stage, with your employer, city and education held the same.`;
+  drawBars($("ldBars"),lad,ctc);
+  const meI=lad.findIndex(r=>r.me), nx=lad[meI+1];
+  $("ldLine").innerHTML = nx ? `Moving into the ${esc(nx.name)} band typically takes pay from <b>${L(lad[meI].med)}</b> to <b>${L(nx.med)}</b>, up ${Math.round((nx.med/lad[meI].med-1)*100)}%. Pay in your function grows fastest in the early bands, so the timing of a switch matters.` :
+    `You're in the most experienced band. From here, pay depends far more on scope and employer than on years.`;
+
+  renderRaise(p,e,band);
+  renderFun(false);
+  renderShare();
+}
+
+function drawScale(p25,med,p75,ctc){
+  const lo=Math.min(p25,ctc)*0.8, hi=Math.max(p75,ctc)*1.12, X=v=>((v-lo)/(hi-lo)*100).toFixed(2)+"%";
+  $("scale").innerHTML=`<div class="track"></div><div class="band" style="left:${X(p25)};width:calc(${X(p75)} - ${X(p25)})"></div>
+    <div class="tick" style="left:${X(med)}"></div><div class="me" style="left:${X(ctc)}"></div>
+    <span class="melab" style="left:${X(ctc)}">You · ${L(ctc)}</span>
+    <span class="lab" style="left:${X(p25)}">${L(p25)}</span><span class="lab" style="left:${X(med)}">Median ${L(med)}</span><span class="lab" style="left:${X(p75)}">${L(p75)}</span>`;
+  // keep the median label from colliding with the range labels on narrow screens
+  const labs=$("scale").querySelectorAll(".lab"); if((hi-lo)>0 && (med-p25)/(hi-lo)<0.16){ labs[0].style.display="none"; labs[2].style.display="none"; }
+}
+function drawBars(el,rows,ctc){
+  const max=Math.max(...rows.map(r=>r.p75),ctc)*1.05, X=v=>(v/max*100).toFixed(2)+"%";
+  el.innerHTML=rows.map(r=>`<li class="${r.me?"me":""}"><span class="nm">${esc(r.name)}${r.me?"<em>you</em>":""}</span>`+
+    `<div class="track" aria-hidden="true"><div class="rng" style="left:${X(r.p25)};width:calc(${X(r.p75)} - ${X(r.p25)})"></div><div class="med" style="left:${X(r.med)}"></div><div class="mark" style="left:${X(ctc)}"></div></div>`+
+    `<span class="val">${L(r.med)}</span></li>`).join("");
+}
+
+/* ---------- raise ---------- */
+function renderRaise(p,e,band){
+  const {med,p25,p75}=e, ctc=p.ctc, sect=EMP_TYPES[p.named?p.named.type:p.empType];
+  const hike=sect.hike, prof=`${ROLES[p.role].label.toLowerCase()} professionals in ${CITIES[p.city][0]} with about ${Math.round(p.yrs)} years' experience`;
+  let ask, why, pts, body;
+  if(band==="A"||band==="B"){
+    ask = band==="A" ? Math.min(med,ctc*1.3) : Math.min(Math.max(med,ctc*1.12),ctc*1.3);
+    why = band==="A" ? "closes most of the gap to the median" : "brings you to the median";
+    const gap=Math.round((med-ctc)/med*100);
+    pts=[`Typical pay for ${esc(prof)} and a similar background is <b>${L(med)}</b>, about <b>${gap}%</b> above your CTC.`,
+      band==="A"?`You're below the typical range (<b>${L(p25)}–${L(p75)}</b>). That points to a market correction, not a standard increment.`:`Half of similar profiles earn more than <b>${L(med)}</b>.`,
+      `Increments in your sector are projected at about <b>${hike}%</b> for 2027. A standard hike won't close a ${gap}% gap.`,
+      `Lead with two concrete results from this year. The market data explains the size of the ask; your results justify it.`];
+    body=`Before appraisals are finalised, I benchmarked my pay against current market data. For ${prof} and a background like mine, typical fixed pay is about ${L(med)}, around ${gap}% above my current ${L(ctc)}. Increments in our sector are projected at about ${hike}% for 2027.
+
+This year I [result one] and [result two]. Given that, I'd like to discuss revising my fixed pay to ${L(ask)}. Could we find 20 minutes this week?`;
+  } else if(band==="C"){
+    ask=Math.max(ctc*1.10,Math.min(p75,ctc*1.18)); why="moves you toward the top of the range";
+    pts=[`You're paid in line with the market, so don't lead with the median. Argue that your work is top-of-range work.`,
+      `The top quarter of similar profiles earns <b>${L(p75)}</b> or more. That's the benchmark for the level you're making a case for.`,
+      `Increments in your sector are projected at about <b>${hike}%</b> for 2027. Strong performers typically receive more than the average.`,
+      `Attrition rose to <b>${MARKET.attrition}%</b> in 2026. Keeping a strong performer is cheaper than replacing one.`];
+    body=`Ahead of appraisals, I'd like to discuss my compensation. This year I [result one] and [result two], and I've taken on [new responsibility].
+
+For ${prof} and a background like mine, the top of the market range is ${L(p75)} and above. Increments in our sector are projected at about ${hike}% for 2027. I'd like to discuss revising my fixed pay to ${L(ask)}. Could we find 20 minutes this week?`;
+  } else {
+    ask=ctc*1.12; why="a retention-level increase";
+    pts=[`You're above the typical range for your profile. Don't cite market averages; they can only pull the number down.`,
+      `Make the case on scope and impact: what you own now that you didn't a year ago, and what it's worth to the business.`,
+      `Increments in your sector are projected at about <b>${hike}%</b> for 2027. Treat that as the floor.`,
+      `Attrition rose to <b>${MARKET.attrition}%</b> in 2026. At your level, replacing you takes months and a search fee. That's your leverage.`];
+    body=`Ahead of appraisals, I'd like to discuss my compensation. Over the past year I've [result one], [result two], and taken on [expanded scope].
+
+Increments in our sector are projected at about ${hike}% for 2027. Given the scope I now carry, I'd like to discuss revising my fixed pay to ${L(ask)}. Could we find 20 minutes this week?`;
+  }
+  ask=Math.round(ask*2)/2; S.ask=ask; S.funAsk=ask;
+  body=body.replace(/revising my fixed pay to ₹[\d.]+ (L|Cr)/,"revising my fixed pay to "+L(ask));
+  $("points").innerHTML=pts.map(x=>`<li><span>${x}</span></li>`).join("");
+  $("askAmt").textContent=L(ask); $("askPct").textContent=`+${Math.round((ask/ctc-1)*100)}% · ${why}`;
+  $("script").textContent=`Hi [Manager],\n\n${body}`;
+}
+
+/* ---------- non-serious ---------- */
+function renderFun(animate){
+  exIdx=exIdx.map(i=>i%EXCUSES.length);
+  const a=fill(EXCUSES[exIdx[0]]), b=fill(EXCUSES[exIdx[1]]);
+  $("ex1").textContent=a; $("ex2").textContent="Aur haan: "+b;
+  $("funAmt").textContent=L(S.funAsk); $("funPct").textContent=`+${Math.round((S.funAsk/S.ctc-1)*100)}% · emotional damages included`;
+  $("funScript").textContent=`Hi Boss,\n\nEk urgent baat thi. ${a}\n\n${b}\n\nToh mera revised CTC ${L(S.funAsk)} kar dijiye. Chai pe discuss karein?\n\nRegards,\n[Name] (soon to be well-settled)`;
+  $("waFun").href="https://wa.me/?text="+encodeURIComponent(funShareText());
+}
+function funShareText(){ return `My official reason for a raise: "${fill(EXCUSES[exIdx[0]])}" Asking for ${L(S.funAsk)}. Find your excuse${SHARE_URL?": "+SHARE_URL:"."}`; }
+
+/* ---------- share ---------- */
+function shareData(){
+  if(mode==="fun") return {fun:true,top:"My reason for a raise",h:"“"+fill(EXCUSES[exIdx[0]])+"”",s:`Asking for ${L(S.funAsk)}`,text:funShareText()};
+  const who=`${ROLES[S.role].label.toLowerCase()} with ${Math.round(S.yrs)} years' experience in ${CITIES[S.city][0]}`;
+  const peer=`${ROLES[S.role].label} with ${Math.round(S.yrs)} years' experience in ${CITIES[S.city][0]}`;
+  return {fun:false,top:"What people like me earn",h:L(S.med),s:`typical fixed pay for ${who}`,
+    text:`${peer}? Typical fixed pay is ${L(S.med)} a year (${L(S.p25)}–${L(S.p75)}). Are you paid what you're worth? Check yours in 30 seconds${SHARE_URL?": "+SHARE_URL:"."}`};
+}
+function renderShare(){
+  const d=shareData();
+  $("scard").classList.toggle("fun",d.fun); $("scT").textContent=d.top; $("scH").textContent=d.h; $("scS").textContent=d.s;
+  $("shareH").textContent=d.fun?"Send this to your team":"Share the benchmark";
+  $("shareSub").textContent=d.fun?"Shuffle until you find the one that's a little too true.":"Shares the typical pay for your profile, not your own salary.";
+  $("shareText").textContent=d.text;
+  $("wa").href="https://wa.me/?text="+encodeURIComponent(d.text);
+  $("xpost").href="https://twitter.com/intent/tweet?text="+encodeURIComponent(d.text);
+  $("li").href="https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent(SHARE_URL||location.href);
+  $("li").hidden=!SHARE_URL;
+}
+function wrapText(ctx,text,maxW){ const w=text.split(/\s+/),out=[]; let c=""; for(const x of w){ const t=c?c+" "+x:x; if(ctx.measureText(t).width>maxW&&c){out.push(c);c=x;} else c=t; } if(c) out.push(c); return out; }
+async function storyBlob(){
+  try{ await document.fonts.load('300 100px "Inter Tight"'); await document.fonts.load('500 40px "Inter"'); }catch(e){}
+  const d=shareData(), W=1080,H=1920,c=document.createElement("canvas"); c.width=W;c.height=H; const x=c.getContext("2d"), pad=96;
+  const g=x.createLinearGradient(0,0,W,H); g.addColorStop(0,"#05081C"); g.addColorStop(.55,"#0B1440"); g.addColorStop(1,"#1A2FB8"); x.fillStyle=g; x.fillRect(0,0,W,H);
+  const r=x.createRadialGradient(W*.8,H*.18,0,W*.8,H*.18,700); r.addColorStop(0,"rgba(122,150,255,.55)"); r.addColorStop(1,"rgba(122,150,255,0)"); x.fillStyle=r; x.fillRect(0,0,W,H);
+  x.fillStyle="#FFFFFF"; x.font='600 40px "Inter", sans-serif'; x.fillText("Salary Check",pad,190);
+  x.globalAlpha=.65; x.font='500 32px "Inter", sans-serif'; x.fillText(d.top.toUpperCase(),pad,260); x.globalAlpha=1;
+  let y;
+  if(d.fun){ let s=80,lines; do{ x.font=`400 ${s}px "Inter Tight", sans-serif`; lines=wrapText(x,d.h,W-2*pad); s-=4; }while(lines.length*s*1.22>1000&&s>40); s+=4; y=460; for(const l of lines){ x.fillText(l,pad,y); y+=s*1.22; } }
+  else { let s=300; x.font=`300 ${s}px "Inter Tight", sans-serif`; while(x.measureText(d.h).width>W-2*pad&&s>120){ s-=10; x.font=`300 ${s}px "Inter Tight", sans-serif`; } y=880; x.fillText(d.h,pad,y); y+=40; }
+  x.globalAlpha=.85; x.font='400 48px "Inter", sans-serif'; for(const l of wrapText(x,d.s,W-2*pad)){ y+=68; x.fillText(l,pad,y); } x.globalAlpha=1;
+  x.fillStyle="#FFFFFF"; x.beginPath(); x.roundRect? x.roundRect(pad,H-320,520,112,56):x.rect(pad,H-320,520,112); x.fill();
+  x.fillStyle="#0B1440"; x.font='600 42px "Inter", sans-serif'; x.fillText("Check yours →",pad+48,H-250);
+  return new Promise(r=>c.toBlob(r,"image/png"));
+}
+
+/* ---------- trust count ----------
+   Shown only once enough people have used the page that the number means something. */
+function renderCount(){
+  const n=salaries.length, el=$("trustCount");
+  const show=n>=COUNT_MIN; if(show) el.textContent=n.toLocaleString("en-IN");
+  $("trustCountItem").hidden=!show; document.getElementById("rangeItem").hidden=show;
+}
+
+/* ---------- saving submissions ---------- */
+function missing(){
+  const m=[]; if(!$("role").value) m.push("role"); if($("yrs").value==="") m.push("yrs");
+  if(!matchEmployer($("emp").value)&&!$("empType").value) m.push("empType");
+  if(!$("city").value) m.push("city"); if(!$("edu").value) m.push("edu");
+  if(!(parseFloat($("ctc").value)>0)) m.push("ctc"); return m;
+}
+async function saveSubmission(){
+  const rec={role:S.role,yrs:Math.round(S.yrs*10)/10,company:$("emp").value.trim().slice(0,80),companyMatched:S.named?S.named.name:"",
+    empType:S.named?S.named.type:S.empType,city:S.city,edu:S.edu,college:S.edu==="ca"?"":$("college").value.trim().slice(0,100),collegeTier:S.edu==="ca"?"":S.tier,
+    fixedPay:Math.round(S.ctc*10)/10,benchmark:Math.round(S.med*10)/10,rangeLow:Math.round(S.p25*10)/10,rangeHigh:Math.round(S.p75*10)/10,at:Date.now()};
+  if(SUBMIT_ENDPOINT){ try{ fetch(SUBMIT_ENDPOINT,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(rec),keepalive:true}).catch(()=>{}); }catch(e){} }
+  if(!db||!uid||!canWrite) return;
+  try{
+    await db.collection("submissions/"+uid+"/entries").add(rec);
+    await db.doc("salaries/"+uid).set({role:rec.role,yrs:Math.round(rec.yrs),city:rec.city,empType:rec.empType,edu:rec.edu,tier:S.tier,ctc:rec.fixedPay,at:rec.at});
+  }catch(e){ if(e&&(e.code==="invalid_argument"||e.code==="not_granted")) canWrite=false; }
+}
+
+/* ---------- events ---------- */
+["role","yrs","emp","empType","city","edu","college","colTier","ctc"].forEach(id=>{ $(id).addEventListener("input",()=>{ $(id).classList.remove("check"); if(id==="empType") empTypeTouched=true; if(id==="edu") eduTouched=true; if(id==="role"&&$("role").value==="ca") $("edu").value="ca"; if(id==="emp") empTypeTouched=false; $(id).closest(".f")?.classList.remove("bad"); render(); }); });
+function showResults(){
+  const m=missing(); document.querySelectorAll(".f.bad").forEach(x=>x.classList.remove("bad"));
+  if(m.length){ m.forEach(id=>$(id).closest(".f").classList.add("bad")); $("formErr").textContent="Fill in the highlighted fields to see your benchmark."; $("formErr").hidden=false; $(m[0]).focus(); return; }
+  $("formErr").hidden=true; const first=!submitted; submitted=true; document.body.classList.add("done"); $("report").hidden=false;
+  try{ render(); }catch(err){ $("formErr").textContent="Something went wrong showing your results. Check your answers and try again."; $("formErr").hidden=false; console.error(err); return; }
+  $("readyLink").hidden=false;
+  $("submitBtn").textContent="Update my benchmark";
+  saveSubmission();
+  track("salary_check_submitted",{role:S.role,yrs:Math.round(S.yrs),emp_type:S.named?S.named.type:S.empType,city:S.city,edu:S.edu,tier:S.tier,ctc_band:ctcBand(S.ctc),band:S.band,first});
+  try{ $("report").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"}); }catch(err){} }
+// The button shows results directly: some embedded viewers block form submission, so we don't rely on the submit event.
+$("submitBtn").addEventListener("click",e=>{ e.preventDefault(); showResults(); });
+$("f").addEventListener("submit",e=>{ e.preventDefault(); });
+$("f").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.tagName==="INPUT"){ e.preventDefault(); showResults(); } });
+$("readyLink").addEventListener("click",e=>{ e.preventDefault(); try{ $("report").scrollIntoView({behavior:"smooth",block:"start"}); }catch(err){} });
+function setMode(m){ mode=m; $("mSerious").setAttribute("aria-pressed",m==="serious"); $("mFun").setAttribute("aria-pressed",m==="fun");
+  $("seriousView").hidden=m!=="serious"; $("funView").hidden=m!=="fun";
+  $("raiseSub").textContent=m==="serious"?"Data points to take into your next conversation with your manager.":"For the group chat, not your manager.";
+  if(m==="fun") renderFun(true); renderShare(); track("raise_mode_toggled",{mode:m}); }
+$("mSerious").addEventListener("click",()=>setMode("serious")); $("mFun").addEventListener("click",()=>setMode("fun"));
+$("shuffle").addEventListener("click",()=>{ const n=EXCUSES.length; let a,b; do{a=Math.floor(Math.random()*n);}while(a===exIdx[0]); do{b=Math.floor(Math.random()*n);}while(b===a); exIdx=[a,b]; renderFun(true); renderShare(); track("excuse_shuffled",{}); });
+function copy(text,ok,src,ev){ const done=()=>{ok.hidden=false;setTimeout(()=>ok.hidden=true,1800);track(ev,{mode});}; const fb=()=>{const r=document.createRange();r.selectNodeContents(src);const s=getSelection();s.removeAllRanges();s.addRange(r);};
+  try{navigator.clipboard.writeText(text).then(done).catch(fb);}catch(e){fb();} }
+$("copyScript").addEventListener("click",()=>copy($("script").textContent,$("okScript"),$("script"),"raise_script_copied"));
+$("copyFun").addEventListener("click",()=>copy($("funScript").textContent,$("okFun"),$("funScript"),"fun_script_copied"));
+$("copyShare").addEventListener("click",()=>copy($("shareText").textContent,$("okShare"),$("shareText"),"share_copied"));
+["wa","xpost","li","waFun"].forEach(id=>$(id).addEventListener("click",()=>track("share_clicked",{channel:id,mode})));
+$("dlStory").addEventListener("click",async()=>{ const err=$("dlErr"); err.hidden=true; if(!DL) return;
+  try{ await DL.save({filename:mode==="fun"?"my-raise-excuse.png":"salary-benchmark.png",data:await storyBlob()}); track("story_downloaded",{mode}); }
+  catch(e){ if(e&&e.code==="declined") return; if(e&&["unavailable","not_granted","capability_disabled","capability_removed"].includes(e.code)){ $("dlStory").hidden=true; return; }
+    err.textContent=e&&e.code==="rate_limited"?"A save is already waiting for you to confirm.":"Couldn't create the image. Try again."; err.hidden=false; } });
+
+render();
+document.fonts && document.fonts.ready.then(render);
+
+/* ---------- runtime capabilities ----------
+   Outside claude.ai there is no shared store or save dialog: submissions go to SUBMIT_ENDPOINT when it is set (and are kept
+   in this browser), and the image downloads directly. */
+function localStore(){ const KEY="salary_check_v3"; let data={}; try{ data=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){}
+  const subs={}, snap=col=>({docs:Object.entries(data[col]||{}).map(([id,d])=>({id,data:()=>d}))}), emit=col=>(subs[col]||[]).forEach(fn=>fn(snap(col)));
+  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(data)); }catch(e){} };
+  return { collection:col=>({onSnapshot(fn){ (subs[col]=subs[col]||[]).push(fn); setTimeout(()=>fn(snap(col)),0); return ()=>{}; },
+      add(d){ const id="e"+Date.now(); (data[col]=data[col]||{})[id]=d; save(); return Promise.resolve({id}); }}),
+    doc:path=>{ const [col,id]=path.split("/"); return {set(d){ (data[col]=data[col]||{})[id]=d; try{ localStorage.setItem(KEY,JSON.stringify(data)); }catch(e){} emit(col); return Promise.resolve(); }}; } }; }
+function localVisitorId(){ let id=null; try{ id=localStorage.getItem("salary_check_visitor"); if(!id){ id="v"+Math.random().toString(36).slice(2,12); localStorage.setItem("salary_check_visitor",id); } }catch(e){ id="v"+Math.random().toString(36).slice(2,12); } return id; }
+const browserDownloads={ save({filename,data}){ const url=URL.createObjectURL(data); const a=document.createElement("a"); a.href=url; a.download=filename; document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); return Promise.resolve({status:"saved"}); } };
+(async()=>{
+  if(!window.claude||!window.claude.use){ uid=localVisitorId(); db=localStore(); DL=browserDownloads; $("dlStory").hidden=false; }
+  else {
+    try{ const u=await claude.use("user"); if(u){ uid=await u.id(); if(await u.can("data.write")===false) canWrite=false; } }catch(e){}
+    try{ DL=await claude.use("downloads"); $("dlStory").hidden=!DL; }catch(e){}
+    try{ db=await claude.use("db"); }catch(e){ db=null; }
+  }
+  if(db) db.collection("salaries").onSnapshot(s=>{ salaries=s.docs.map(d=>Object.assign({id:d.id},d.data())); renderCount(); },()=>{});
+  renderCount();
+})();
+
+</script>
+
+</body>
+</html>
