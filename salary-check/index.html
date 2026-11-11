@@ -43,7 +43,20 @@ h1,h2,h3{font-family:var(--f-display);font-weight:400;letter-spacing:-.02em;text
 .mark i{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,var(--blue-hi) 45%,var(--blue) 100%);box-shadow:0 0 16px rgba(122,150,255,.8)}
 .bar span{font-size:13px;color:rgba(255,255,255,.6)}
 .hero h1{font-weight:300;font-size:clamp(44px,7.4vw,104px);line-height:.98;letter-spacing:-.045em;margin-top:clamp(48px,8vw,96px);max-width:12ch}
-.lede{font-size:clamp(16px,1.6vw,19px);color:rgba(255,255,255,.78);max-width:52ch;margin:24px 0 0}
+.trust{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:28px 0 0;font-size:16px;color:rgba(255,255,255,.86)}
+.trust .src{display:inline-flex;align-items:center;gap:8px;padding-left:18px;border-left:1px solid rgba(255,255,255,.24);color:rgba(255,255,255,.66);font-size:13px}
+.trust .src b{color:#fff;font-weight:600;font-size:15px}
+body.view-result .hero{padding-block:22px}
+body.view-result .hero h1,body.view-result .trust{display:none}
+body.view-result .report{padding-top:24px}
+.confirm{display:flex;flex-direction:column;gap:22px}
+.confirm h3{font-size:clamp(22px,2.6vw,28px);font-weight:300}
+.confirm p{margin:6px 0 0;color:var(--muted);font-size:14px;max-width:60ch}
+.clist{margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 36px}
+.clist div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);min-width:0}
+.clist dt{color:var(--muted);font-size:14px}
+.clist dd{margin:0;font-weight:500;text-align:right;overflow-wrap:anywhere}
+@media (max-width:760px){.clist{grid-template-columns:minmax(0,1fr)}}
 .stats{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;border-top:1px solid rgba(255,255,255,.14);padding-top:24px}
 .stats li{display:flex;flex-direction:column;gap:4px;min-width:0}
 .stats b{font-family:var(--f-display);font-weight:300;font-size:clamp(32px,4vw,48px);line-height:1;letter-spacing:-.03em}
@@ -190,18 +203,11 @@ footer p{margin:6px 0 0;max-width:62ch}
   <div class="in">
     <div class="bar"><span class="mark"><i aria-hidden="true"></i>Salary Check</span><span>India · Updated November 2026</span></div>
     <h1>Are you paid what you're worth?</h1>
-    <p class="lede">Tell us about your role, experience, employer and education. We'll show what people like you typically earn, and give you the numbers to take into your next pay conversation.</p>
-    <ul class="stats">
-      <li><b class="tab">16</b><span>job functions benchmarked</span></li>
-      <li><b class="tab">55+</b><span>named employers recognised</span></li>
-      <li><b class="tab">55+</b><span>colleges ranked by tier</span></li>
-      <li id="trustCountItem" hidden><b class="tab" id="trustCount"></b><span>professionals have checked their pay</span></li>
-      <li id="rangeItem"><b>Range</b><span>not one number, so you see where most people like you fall</span></li>
-    </ul>
+    <p class="trust"><span>Based on 3,00,000+ verified salary data</span><span class="src">Source <b>Michael Page</b></span></p>
   </div>
 </header>
 
-<div class="in formwrap">
+<div class="in formwrap" id="formwrap">
   <form class="card form" id="f" novalidate>
     <div class="fhead">
       <div><h2>Your profile</h2><p>Takes about 30 seconds. Every answer changes your benchmark.</p></div>
@@ -210,7 +216,7 @@ footer p{margin:6px 0 0;max-width:62ch}
         <li>Benchmarks from published salary surveys of Indian professionals</li>
       </ul>
     </div>
-    <div class="groups">
+    <div class="groups" id="groups">
       <fieldset>
         <legend>Role</legend>
         <div class="f"><label for="role">Job function</label><select id="role" required></select></div>
@@ -235,13 +241,21 @@ footer p{margin:6px 0 0;max-width:62ch}
         <div class="f"><label for="ctc">Annual fixed pay</label><div class="unit"><input id="ctc" type="number" inputmode="decimal" min="0.5" max="500" step="0.5" placeholder="e.g. 9"><span>₹ lakh</span></div><span class="note">Your CTC without bonus or variable pay, before tax.</span></div>
       </fieldset>
     </div>
-    <div class="actions">
+    <div class="actions" id="actions">
       <button class="btn" type="button" id="submitBtn">See my benchmark</button>
       <span class="err" id="formErr" role="alert" hidden></span>
-      <a class="ready" id="readyLink" href="#report" hidden>Your results are ready below ↓</a>
       <p class="privacy">We save your answers, without your name or contact details, to keep these benchmarks accurate.</p>
     </div>
+    <div class="confirm" id="confirm" hidden>
+      <div><h3>Are these details correct?</h3><p>You can check your pay once, so make sure your answers are right before you continue.</p></div>
+      <dl class="clist" id="confirmList"></dl>
+      <div class="row"><button class="btn" type="button" id="confirmYes">Yes, show my benchmark</button><button class="btn ghost" type="button" id="confirmEdit">Edit my answers</button></div>
+    </div>
   </form>
+  <div class="card form" id="locked" hidden>
+    <div class="fhead"><div><h2>You've already checked your pay</h2><p>Each person can check once on a device, so the benchmarks stay accurate.</p></div></div>
+    <div class="row"><a class="btn" id="viewSaved" href="/salary-check/result">View my result</a></div>
+  </div>
 </div>
 
 <main class="in report" id="report" hidden>
@@ -569,7 +583,7 @@ async function storyBlob(){
 /* ---------- trust count ----------
    Shown only once enough people have used the page that the number means something. */
 function renderCount(){
-  const n=salaries.length, el=$("trustCount");
+  const n=salaries.length, el=$("trustCount"); if(!el) return;
   const show=n>=COUNT_MIN; if(show) el.textContent=n.toLocaleString("en-IN");
   $("trustCountItem").hidden=!show; document.getElementById("rangeItem").hidden=show;
 }
@@ -595,21 +609,48 @@ async function saveSubmission(){
 
 /* ---------- events ---------- */
 ["role","yrs","emp","empType","city","edu","college","colTier","ctc"].forEach(id=>{ $(id).addEventListener("input",()=>{ $(id).classList.remove("check"); if(id==="empType") empTypeTouched=true; if(id==="edu") eduTouched=true; if(id==="role"&&$("role").value==="ca") $("edu").value="ca"; if(id==="emp") empTypeTouched=false; $(id).closest(".f")?.classList.remove("bad"); render(); }); });
-function showResults(){
+/* Flow: form -> confirm answers -> results on their own page (/salary-check/result). Answers are kept in this browser,
+   so a visitor can check once per device. Opening the page with #reset clears that, for testing. */
+const SAVE_KEY="salary_check_answers_v1", PENDING_KEY="salary_check_pending";
+const FIELDS=["role","yrs","emp","empType","city","edu","college","colTier","ctc"];
+const HOSTED=/\/salary-check(\/|$)/.test(location.pathname), ON_RESULT=/\/salary-check\/result\/?$/.test(location.pathname);
+const FORM_URL="/salary-check/", RESULT_URL="/salary-check/result";
+function loadSaved(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)||"null"); }catch(e){ return null; } }
+function startCheck(){
   const m=missing(); document.querySelectorAll(".f.bad").forEach(x=>x.classList.remove("bad"));
   if(m.length){ m.forEach(id=>$(id).closest(".f").classList.add("bad")); $("formErr").textContent="Fill in the highlighted fields to see your benchmark."; $("formErr").hidden=false; $(m[0]).focus(); return; }
-  $("formErr").hidden=true; const first=!submitted; submitted=true; document.body.classList.add("done"); $("report").hidden=false;
-  try{ render(); }catch(err){ $("formErr").textContent="Something went wrong showing your results. Check your answers and try again."; $("formErr").hidden=false; console.error(err); return; }
-  $("readyLink").hidden=false;
-  $("submitBtn").textContent="Update my benchmark";
+  $("formErr").hidden=true;
+  const p=readProfile(), type=EMP_TYPES[p.empType||(p.named&&p.named.type)];
+  const rows=[["Job function",ROLES[p.role].label],["Total work experience",p.yrs===1?"1 year":p.yrs+" years"],["Company",$("emp").value.trim()||"Not given"],["Type of employer",type?type.label:"Not given"],["City",CITIES[p.city][0]],["Highest education",EDU[p.edu].label]];
+  if(p.edu!=="ca") rows.push(["College or university",$("college").value.trim()||"Not given"]);
+  rows.push(["Annual fixed pay","₹"+p.ctc+" lakh"]);
+  $("confirmList").innerHTML=rows.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("");
+  $("groups").hidden=true; $("actions").hidden=true; $("confirm").hidden=false; $("confirmYes").focus();
+}
+function editAnswers(){ $("confirm").hidden=true; $("groups").hidden=false; $("actions").hidden=false; }
+function confirmAnswers(){
+  if(missing().length){ editAnswers(); return; }
+  const p=readProfile(); S={...p,...estimate(p)};
+  const answers={}; FIELDS.forEach(id=>{ answers[id]=$(id).value; });
+  let stored=false; try{ localStorage.setItem(SAVE_KEY,JSON.stringify({answers,at:Date.now()})); localStorage.setItem(PENDING_KEY,"1"); stored=true; }catch(e){}
   saveSubmission();
-  track("salary_check_submitted",{role:S.role,yrs:Math.round(S.yrs),emp_type:S.named?S.named.type:S.empType,city:S.city,edu:S.edu,tier:S.tier,ctc_band:ctcBand(S.ctc),band:S.band,first});
-  try{ $("report").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"}); }catch(err){} }
-// The button shows results directly: some embedded viewers block form submission, so we don't rely on the submit event.
-$("submitBtn").addEventListener("click",e=>{ e.preventDefault(); showResults(); });
+  if(HOSTED&&stored){ location.assign(RESULT_URL); return; }
+  showResultView(answers,true);
+}
+function showResultView(answers,fresh){
+  FIELDS.forEach(id=>{ if(answers[id]!==undefined) $(id).value=answers[id]; });
+  empTypeTouched=true; eduTouched=true; submitted=true;
+  document.body.classList.add("view-result"); $("formwrap").hidden=true; $("report").hidden=false;
+  try{ render(); }catch(err){ console.error(err); }
+  let pending=fresh; try{ if(localStorage.getItem(PENDING_KEY)){ pending=true; localStorage.removeItem(PENDING_KEY); } }catch(e){}
+  if(pending) track("salary_check_submitted",{role:S.role,yrs:Math.round(S.yrs),emp_type:S.named?S.named.type:S.empType,city:S.city,edu:S.edu,tier:S.tier,ctc_band:ctcBand(S.ctc),band:S.band,first:true});
+  try{ window.scrollTo(0,0); }catch(e){}
+}
+$("submitBtn").addEventListener("click",e=>{ e.preventDefault(); startCheck(); });
+$("confirmYes").addEventListener("click",confirmAnswers);
+$("confirmEdit").addEventListener("click",editAnswers);
 $("f").addEventListener("submit",e=>{ e.preventDefault(); });
-$("f").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.tagName==="INPUT"){ e.preventDefault(); showResults(); } });
-$("readyLink").addEventListener("click",e=>{ e.preventDefault(); try{ $("report").scrollIntoView({behavior:"smooth",block:"start"}); }catch(err){} });
+$("f").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.tagName==="INPUT"){ e.preventDefault(); startCheck(); } });
 function setMode(m){ mode=m; $("mSerious").setAttribute("aria-pressed",m==="serious"); $("mFun").setAttribute("aria-pressed",m==="fun");
   $("seriousView").hidden=m!=="serious"; $("funView").hidden=m!=="fun";
   $("raiseSub").textContent=m==="serious"?"Data points to take into your next conversation with your manager.":"For the group chat, not your manager.";
@@ -629,6 +670,12 @@ $("dlStory").addEventListener("click",async()=>{ const err=$("dlErr"); err.hidde
 
 render();
 document.fonts && document.fonts.ready.then(render);
+(function boot(){
+  if(location.hash==="#reset"){ try{ localStorage.removeItem(SAVE_KEY); localStorage.removeItem(PENDING_KEY); }catch(e){} }
+  const saved=loadSaved(), ok=saved&&saved.answers;
+  if(ON_RESULT){ if(ok) showResultView(saved.answers,false); else location.replace(FORM_URL); return; }
+  if(ok){ $("f").hidden=true; $("locked").hidden=false; $("viewSaved").addEventListener("click",e=>{ if(!HOSTED){ e.preventDefault(); showResultView(saved.answers,false); } }); }
+})();
 
 /* ---------- runtime capabilities ----------
    Outside claude.ai there is no shared store or save dialog: submissions go to SUBMIT_ENDPOINT when it is set (and are kept

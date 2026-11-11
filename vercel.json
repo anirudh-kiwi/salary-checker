@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/salary-check/result", "destination": "/salary-check/index.html" },
+    { "source": "/salary-check/result/", "destination": "/salary-check/index.html" }
+  ]
+}
