@@ -388,6 +388,14 @@ const BRAGS=[
   "US wala cousin ab Diwali call pe salary nahi poochta. Topic badal deta hai.",
   "Mummy ne kitty party mein jo bola tha, woh ab sach nikla."
 ];
+/* Report card: the visitor grades the employer on pay. First entry whose min is at or below the % difference. */
+const GRADES=[
+  {min:30,grade:"O",remark:"Outstanding. A pleasure to have in my bank account."},
+  {min:5,grade:"A+",remark:"Pays above the market. Keep it up."},
+  {min:-5,grade:"A",remark:"Pays at par and on time. Satisfactory."},
+  {min:-25,grade:"B",remark:"Shows potential. Must try harder at appraisal time."},
+  {min:-Infinity,grade:"C",remark:"Can do better. Much better. Parents have been called."}
+];
 /* Brand card: first entry whose min is at or below the visitor's % difference from the benchmark. Names only, no logos. */
 const BRANDS=[
   {min:30,name:"iPhone Pro Max",line:"Costs more than it should. Nobody's complaining, least of all me."},
@@ -577,34 +585,37 @@ function funShareText(){ const q=fill(lines()[exIdx[0]%lines().length]);
 /* ---------- share ----------
    The card is drawn on a canvas, so the preview on the page is exactly the image that gets shared.
    No card style may show the visitor's own pay: only the % difference from the benchmark. */
-const STYLE_NAMES={mrp:"Price tag",brand:"Brand",line:"Excuse",classic:"Benchmark"};
-const STYLE_LIST=((CFG.shareStyles&&CFG.shareStyles.length)?CFG.shareStyles:["mrp","brand","line","classic"]).filter(k=>STYLE_NAMES[k]);
+const STYLE_NAMES={mrp:"Price tag",brand:"Brand",report:"Report card",line:"Excuse",classic:"Benchmark"};
+const STYLE_LIST=((CFG.shareStyles&&CFG.shareStyles.length)?CFG.shareStyles:["mrp","brand","report","line","classic"]).filter(k=>STYLE_NAMES[k]);
 let cardStyle=(()=>{ let q=null; try{ q=new URLSearchParams(location.search).get("card"); }catch(e){} return STYLE_NAMES[q]?q:(STYLE_LIST[0]||"classic"); })();
 let cardBlob=null, fontsAsked=false;
 function shareData(){
   const pct=Math.abs(S.pct), t=S.tier, ask=`Check in 30 seconds${linkTxt()}`;
   if(cardStyle==="mrp"){
-    if(t==="below") return {look:"sale",top:"My market price",pre:"FLAT",big:pct+"%",post:"OFF",s:"That's the deal my company is getting on me. Offer ends this appraisal.",cta:"What's your MRP? →",
+    if(t==="below") return {look:"sale",huge:true,top:"My market price",pre:"FLAT",big:pct+"%",post:"OFF",s:"That's the deal my company is getting on me. Offer ends this appraisal.",cta:"What's your MRP?",
       text:`My company is getting me at ${pct}% off my market price. What's your MRP? ${ask}`};
-    if(t==="above") return {look:"premium",top:"My market price",pre:"PRICED",big:pct+"%",post:"ABOVE MRP",s:"Premium pricing. No discounts, no returns.",cta:"What's your MRP? →",
+    if(t==="above") return {look:"premium",huge:true,top:"My market price",pre:"PRICED",big:pct+"%",post:"ABOVE MRP",s:"Premium pricing. No discounts, no returns.",cta:"What's your MRP?",
       text:`Turns out I'm priced ${pct}% above MRP. No discounts, no returns. What's your MRP? ${ask}`};
-    return {look:"plain",top:"My market price",pre:"SOLD AT",big:"MRP",s:"Paid the market rate. Rarest thing in corporate India.",cta:"What's your MRP? →",
+    return {look:"plain",huge:true,top:"My market price",pre:"SOLD AT",big:"MRP",s:"Paid the market rate. Rarest thing in corporate India.",cta:"What's your MRP?",
       text:`Turns out I'm sold at MRP: paid the market rate. What's your MRP? ${ask}`};
   }
   if(cardStyle==="brand"){ const b=BRANDS.find(b=>S.pct>=b.min)||BRANDS[BRANDS.length-1];
-    return {look:"cream",top:"If my salary were a brand",pre:"I'd be",big:b.name,s:b.line,stat:statTxt(),tone:t,cta:"Which brand are you? →",
+    return {look:"cream",top:"If my salary were a brand",pre:"I'd be",big:b.name,s:b.line,stat:statTxt(),tone:t,cta:"Which brand are you?",
       text:`If my salary were a brand, I'd be ${b.name}. ${b.line} (${statTxt()}.) Which brand are you? ${ask}`}; }
+  if(cardStyle==="report"){ const g=GRADES.find(g=>S.pct>=g.min)||GRADES[GRADES.length-1], marks=S.pct>=5?"Distinction":S.tier==="at"?"Full marks":Math.round(S.ctc/S.med*100)+"/100";
+    return {look:"paper",huge:true,bigColor:"#D7263D",top:"Report card for my employer",pre:"Subject: Pay",big:g.grade,post:marks,s:"Remarks: "+g.remark,cta:"What grade does your employer get?",
+      text:`I graded my employer on pay: ${g.grade}, ${marks.toLowerCase()}. Remarks: ${g.remark} What grade does yours get? ${ask}`}; }
   if(cardStyle==="line"){ const q=fill(lines()[exIdx[0]%lines().length]);
-    return {look:"navy",quote:true,top:t==="above"?"My humble brag":"My reason for a raise",big:"“"+q+"”",stat:t==="above"?statTxt():`Asking for +${S.askPct}%`,cta:t==="above"?"Check yours →":"Find your excuse →",text:funShareText()}; }
+    return {look:"navy",quote:true,top:t==="above"?"My humble brag":"My reason for a raise",big:"“"+q+"”",stat:t==="above"?statTxt():`Asking for +${S.askPct}%`,cta:t==="above"?"Where do you stand?":"What's your excuse?",text:funShareText()}; }
   const who=`${ROLES[S.role].label.toLowerCase()} with ${Math.round(S.yrs)} years' experience in ${CITIES[S.city][0]}`;
   const peer=`${ROLES[S.role].label} with ${Math.round(S.yrs)} years' experience in ${CITIES[S.city][0]}`;
-  return {look:"navy",thin:true,top:"What people like me earn",big:L(S.med),s:`typical fixed pay for ${who}`,cta:"Check yours →",
+  return {look:"navy",thin:true,top:"What people like me earn",big:L(S.med),s:`typical fixed pay for ${who}`,cta:"Are you paid what you're worth?",
     text:`${peer}? Typical fixed pay is ${L(S.med)} a year (${L(S.p25)}–${L(S.p75)}). Are you paid what you're worth? Check yours in 30 seconds${linkTxt()}`};
 }
 function wrapText(ctx,text,maxW){ const w=text.split(/\s+/),out=[]; let c=""; for(const x of w){ const t=c?c+" "+x:x; if(ctx.measureText(t).width>maxW&&c){out.push(c);c=x;} else c=t; } if(c) out.push(c); return out; }
 const LOOKS={navy:{fg:"#FFFFFF",body:"#FFFFFF",pill:"#FFFFFF",pillFg:"#0B1440"},sale:{bg:"#FFD60A",fg:"#14110F",body:"#14110F",pill:"#14110F",pillFg:"#FFD60A"},
   plain:{bg:"#F4F1EA",fg:"#14110F",body:"#14110F",pill:"#3D5AFE",pillFg:"#FFFFFF"},premium:{bg:"#0B0B0F",fg:"#F3D48B",body:"#FFFFFF",pill:"#F3D48B",pillFg:"#0B0B0F"},
-  cream:{bg:"#FBF7EF",fg:"#14110F",body:"#14110F",pill:"#14110F",pillFg:"#FBF7EF"}};
+  cream:{bg:"#FBF7EF",fg:"#14110F",body:"#14110F",pill:"#14110F",pillFg:"#FBF7EF"},paper:{bg:"#FFFDF4",fg:"#1B2A4A",body:"#1B2A4A"}};
 const TONES={below:"#D7263D",at:"#3D5AFE",above:"#1F8A4C"};
 function drawCard(){
   const c=$("scv"); if(!c||!S.role) return;
@@ -614,6 +625,9 @@ function drawCard(){
   if(d.look==="navy"){ const g=x.createLinearGradient(0,0,W,H); g.addColorStop(0,"#05081C"); g.addColorStop(.55,"#0B1440"); g.addColorStop(1,"#1A2FB8"); x.fillStyle=g; x.fillRect(0,0,W,H);
     const r=x.createRadialGradient(W*.8,H*.18,0,W*.8,H*.18,700); r.addColorStop(0,"rgba(122,150,255,.55)"); r.addColorStop(1,"rgba(122,150,255,0)"); x.fillStyle=r; x.fillRect(0,0,W,H); }
   else { x.fillStyle=K.bg; x.fillRect(0,0,W,H); }
+  if(d.look==="paper"){ // ruled notebook page with a red margin
+    x.strokeStyle="#9DB7E8"; x.globalAlpha=.45; x.lineWidth=2; for(let ly=250;ly<H-40;ly+=62){ x.beginPath(); x.moveTo(0,ly); x.lineTo(W,ly); x.stroke(); }
+    x.strokeStyle="#D7263D"; x.globalAlpha=.5; x.beginPath(); x.moveTo(52,0); x.lineTo(52,H); x.stroke(); x.globalAlpha=1; }
   if(cardStyle==="mrp"){ // price tag: stitched edge and a punched hole
     x.strokeStyle=K.fg; x.globalAlpha=.35; x.lineWidth=4; x.setLineDash([18,14]); rr(34,34,W-68,H-68,44); x.stroke(); x.setLineDash([]);
     x.globalAlpha=.9; x.lineWidth=6; x.beginPath(); x.arc(W-pad-30,150,26,0,Math.PI*2); x.stroke(); x.globalAlpha=1; }
@@ -623,8 +637,8 @@ function drawCard(){
   const items=[];
   if(d.pre){ items.push({lines:[d.pre],font:F(600,54),size:54,lh:1.15,alpha:.9,gap:0,color:K.fg}); }
   if(d.quote){ let s=80,ls; do{ s-=4; x.font=F(400,s,"Inter Tight"); ls=wrapText(x,d.big,mw); }while(ls.length*s*1.22>540&&s>44); items.push({lines:ls,font:F(400,s,"Inter Tight"),size:s,lh:1.22,alpha:1,gap:0,color:K.fg}); }
-  else { const wgt=d.thin?300:500; let s=/%$|^MRP$/.test(d.big)?400:(d.thin?300:190); x.font=F(wgt,s,"Inter Tight"); while(x.measureText(d.big).width>mw&&s>90){ s-=10; x.font=F(wgt,s,"Inter Tight"); }
-    items.push({lines:[d.big],font:F(wgt,s,"Inter Tight"),size:s,lh:.92,alpha:1,gap:6,color:K.fg}); }
+  else { const wgt=d.thin?300:500; let s=d.huge?400:(d.thin?300:190); x.font=F(wgt,s,"Inter Tight"); while(x.measureText(d.big).width>mw&&s>90){ s-=10; x.font=F(wgt,s,"Inter Tight"); }
+    items.push({lines:[d.big],font:F(wgt,s,"Inter Tight"),size:s,lh:.92,alpha:1,gap:6,color:d.bigColor||K.fg}); }
   if(d.post){ items.push({lines:[d.post],font:F(500,92,"Inter Tight"),size:92,lh:1.1,alpha:1,gap:0,color:K.fg}); }
   if(d.s){ x.font=F(400,44); items.push({lines:wrapText(x,d.s,mw),font:F(400,44),size:44,lh:1.4,alpha:.85,gap:34,color:K.body}); }
   if(d.stat){ items.push({pill:d.stat,size:84,lh:1,gap:44,lines:[""]}); }
@@ -635,15 +649,17 @@ function drawCard(){
     x.font=it.font; x.fillStyle=it.color; x.globalAlpha=it.alpha;
     for(const l of it.lines){ y+=it.size*it.lh; x.fillText(l,pad,y-it.size*(it.lh-.82)/2-it.size*.06); }
     x.globalAlpha=1; }
-  // footer: call to action, the page address (so the link survives if a chat app drops the caption) and what the % is measured against
-  x.font=F(600,40); const cw=x.measureText(d.cta).width+96; x.fillStyle=K.pill; rr(pad,H-250,cw,104,52); x.fill(); x.fillStyle=K.pillFg; x.fillText(d.cta,pad+48,H-185);
-  x.fillStyle=K.fg; x.globalAlpha=.75; x.font=F(500,30); x.fillText((SHARE_URL||"").replace(/^https?:\/\//,"").replace(/\/$/,""),pad,H-80);
-  if(cardStyle!=="classic"){ x.globalAlpha=.55; x.font=F(400,26); x.textAlign="right"; x.fillText("vs benchmark for similar profiles",W-pad,H-80); x.textAlign="left"; }
+  // footer, as plain text: nothing on an image can be tapped, so it asks the question and spells out the address; the tappable link travels in the caption
+  const site=(SHARE_URL||"").replace(/^https?:\/\//,"").replace(/\/$/,"");
+  x.fillStyle=K.fg; x.globalAlpha=.25; x.fillRect(pad,H-262,mw,2); x.globalAlpha=1;
+  x.font=F(600,44); x.fillText(d.cta,pad,H-186);
+  x.globalAlpha=.85; x.font=F(500,34); x.fillText(site?"Check yours at "+site:"Check yours in 30 seconds",pad,H-128);
+  if(cardStyle!=="classic"){ x.globalAlpha=.55; x.font=F(400,26); x.fillText("Compared with the benchmark for similar profiles",pad,H-76); }
   x.globalAlpha=1;
   c.setAttribute("aria-label","Share card: "+d.text.replace(/\s*(Check|Find|Where)[^.?]*(in 30 seconds)?[:.]?\s*https?:\S+$/,""));
   cardBlob=null; try{ c.toBlob(b=>{ cardBlob=b; },"image/png"); }catch(e){}
 }
-const cardFileName=()=>({mrp:"my-market-price",brand:"my-salary-brand",line:S.tier==="above"?"my-humble-brag":"my-raise-excuse",classic:"salary-benchmark"}[cardStyle])+".png";
+const cardFileName=()=>({mrp:"my-market-price",brand:"my-salary-brand",report:"employer-report-card",line:S.tier==="above"?"my-humble-brag":"my-raise-excuse",classic:"salary-benchmark"}[cardStyle])+".png";
 function cardImage(){ return cardBlob?Promise.resolve(cardBlob):new Promise(r=>$("scv").toBlob(r,"image/png")); }
 function renderShare(){
   const d=shareData(), names={...STYLE_NAMES,line:S.tier==="above"?"Brag":"Excuse"};
