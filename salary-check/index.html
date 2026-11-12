@@ -321,7 +321,7 @@ footer p{margin:6px 0 0;max-width:62ch}
       <div class="seg wrap" role="group" aria-label="Card style" id="styleSeg"></div>
       <p class="msg" id="shareText"></p>
       <div class="row">
-        <button class="btn sm" type="button" id="shareImg" hidden>Share image</button>
+        <button class="btn sm" type="button" id="shareImg" hidden>Share</button>
         <button class="btn sm ghost" type="button" id="reroll" hidden>Another line</button>
         <button class="btn sm ghost" type="button" id="dlStory" hidden>Download image</button>
         <a class="btn sm ghost" id="wa" href="https://wa.me/" target="_blank" rel="noopener">WhatsApp</a>
@@ -329,6 +329,7 @@ footer p{margin:6px 0 0;max-width:62ch}
         <a class="btn sm ghost" id="li" href="https://www.linkedin.com/sharing/share-offsite/" target="_blank" rel="noopener">LinkedIn</a>
         <button class="btn sm ghost" type="button" id="copyShare">Copy text</button><span class="ok" id="okShare" hidden>Copied</span>
       </div>
+      <span class="ok" id="okCap" hidden>Message copied as well. Paste it if your app left it out.</span>
       <span class="err" id="dlErr" hidden></span>
     </div>
   </section>
@@ -588,7 +589,7 @@ function funShareText(){ const q=fill(lines()[exIdx[0]%lines().length]);
 const STYLE_NAMES={mrp:"Price tag",brand:"Brand",report:"Report card",line:"Excuse",classic:"Benchmark"};
 const STYLE_LIST=((CFG.shareStyles&&CFG.shareStyles.length)?CFG.shareStyles:["mrp","brand","report","line","classic"]).filter(k=>STYLE_NAMES[k]);
 let cardStyle=(()=>{ let q=null; try{ q=new URLSearchParams(location.search).get("card"); }catch(e){} return STYLE_NAMES[q]?q:(STYLE_LIST[0]||"classic"); })();
-let cardBlob=null, fontsAsked=false;
+let fontsAsked=false, canNative=false;   // canNative: this browser can hand an image plus text to the share sheet
 function shareData(){
   const pct=Math.abs(S.pct), t=S.tier, ask=`Check in 30 seconds${linkTxt()}`;
   if(cardStyle==="mrp"){
@@ -657,10 +658,10 @@ function drawCard(){
   if(cardStyle!=="classic"){ x.globalAlpha=.55; x.font=F(400,26); x.fillText("Compared with the benchmark for similar profiles",pad,H-76); }
   x.globalAlpha=1;
   c.setAttribute("aria-label","Share card: "+d.text.replace(/\s*(Check|Find|Where)[^.?]*(in 30 seconds)?[:.]?\s*https?:\S+$/,""));
-  cardBlob=null; try{ c.toBlob(b=>{ cardBlob=b; },"image/png"); }catch(e){}
 }
-const cardFileName=()=>({mrp:"my-market-price",brand:"my-salary-brand",report:"employer-report-card",line:S.tier==="above"?"my-humble-brag":"my-raise-excuse",classic:"salary-benchmark"}[cardStyle])+".png";
-function cardImage(){ return cardBlob?Promise.resolve(cardBlob):new Promise(r=>$("scv").toBlob(r,"image/png")); }
+const cardFileName=()=>({mrp:"my-market-price",brand:"my-salary-brand",report:"employer-report-card",line:S.tier==="above"?"my-humble-brag":"my-raise-excuse",classic:"salary-benchmark"}[cardStyle])+".jpg";
+/* Built synchronously (no toBlob callback to wait for), so sharing still happens inside the tap that asked for it. */
+function cardImage(){ const bin=atob($("scv").toDataURL("image/jpeg",.92).split(",")[1]), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return Promise.resolve(new Blob([u],{type:"image/jpeg"})); }
 function renderShare(){
   const d=shareData(), names={...STYLE_NAMES,line:S.tier==="above"?"Brag":"Excuse"};
   $("styleSeg").hidden=STYLE_LIST.length<2;
@@ -670,7 +671,7 @@ function renderShare(){
   $("wa").href="https://wa.me/?text="+encodeURIComponent(d.text);
   $("xpost").href="https://twitter.com/intent/tweet?text="+encodeURIComponent(d.text);
   $("li").href="https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent(SHARE_URL||location.href);
-  $("li").hidden=!SHARE_URL;
+  $("li").hidden=!SHARE_URL||canNative; $("wa").hidden=$("xpost").hidden=canNative;   // text-only links are the fallback; the share sheet sends image and message together
   drawCard();
   if(!fontsAsked&&document.fonts&&document.fonts.load){ fontsAsked=true; // canvas text needs the web fonts loaded before it is drawn
     Promise.all(['500 100px "Inter Tight"','400 100px "Inter Tight"','300 100px "Inter Tight"','600 40px "Inter"','500 40px "Inter"','400 40px "Inter"'].map(f=>document.fonts.load(f))).then(drawCard,()=>{}); }
@@ -765,16 +766,20 @@ async function saveImage(){ const err=$("dlErr"); err.hidden=true; if(!DL) retur
   try{ await DL.save({filename:cardFileName(),data:await cardImage()}); track("story_downloaded",{style:cardStyle,tier:S.tier}); }
   catch(e){ if(e&&e.code==="declined") return; if(e&&["unavailable","not_granted","capability_disabled","capability_removed"].includes(e.code)){ $("dlStory").hidden=true; return; }
     err.textContent=e&&e.code==="rate_limited"?"A save is already waiting for you to confirm.":"Couldn't create the image. Try again."; err.hidden=false; } }
-/* One tap: hand the image, caption and link to the phone's share sheet. Browsers that can't share files fall back to a download. */
+/* One tap: one message made of the card image plus the text with the link, through the phone's share sheet.
+   The text is also put on the clipboard, because a few apps keep the image and drop the caption. Browsers that can't share files fall back to a download. */
 async function shareImage(){
-  const blob=await cardImage(); let file=null; try{ file=new File([blob],cardFileName(),{type:"image/png"}); }catch(e){}
-  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
-    try{ await navigator.share({files:[file],text:shareData().text}); track("share_clicked",{channel:"native",style:cardStyle,tier:S.tier}); return; }
+  const text=shareData().text, blob=await cardImage(); let file=null; try{ file=new File([blob],cardFileName(),{type:"image/jpeg"}); }catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file],text})){
+    try{ navigator.clipboard.writeText(text).then(()=>{ $("okCap").hidden=false; setTimeout(()=>{ $("okCap").hidden=true; },8000); },()=>{}); }catch(e){}
+    try{ await navigator.share({files:[file],text}); track("share_clicked",{channel:"native",style:cardStyle,tier:S.tier}); return; }
     catch(e){ if(e&&e.name==="AbortError") return; } }
   saveImage();
 }
 $("dlStory").addEventListener("click",saveImage); $("shareImg").addEventListener("click",shareImage);
-try{ $("shareImg").hidden=!(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([""],"a.png",{type:"image/png"})]})); }catch(e){}
+try{ canNative=!!(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([""],"a.jpg",{type:"image/jpeg"})],text:"a"})); }catch(e){}
+$("shareImg").hidden=!canNative;
+$("waFun").addEventListener("click",e=>{ if(!canNative||!STYLE_NAMES.line) return; e.preventDefault(); cardStyle="line"; renderShare(); shareImage(); });   // the excuse goes out as image plus message too
 
 render();
 document.fonts && document.fonts.ready.then(render);
