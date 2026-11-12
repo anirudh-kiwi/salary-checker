@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Salary Check</title>
 <meta name="description" content="Are you paid what you're worth? See typical fixed pay for your role, experience, employer, city and education in India, and get the numbers for your next pay conversation.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Salary Check">
+<meta property="og:title" content="Are you paid what you're worth?">
+<meta property="og:description" content="Find out how your pay compares with the market for your role, experience and city. Takes 30 seconds.">
+<meta property="og:url" content="https://finindex.co.in/salary-check/">
+<meta property="og:image" content="https://finindex.co.in/salary-check/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://finindex.co.in/salary-check/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@200;300;400;500&family=Inter:wght@400;500;600;700&display=swap">
@@ -173,17 +183,10 @@ legend{padding:0;margin-bottom:12px;font-size:11.5px;font-weight:600;letter-spac
 .excuse q{font-family:var(--f-display);font-weight:300;font-size:clamp(22px,2.6vw,30px);line-height:1.25;letter-spacing:-.015em;quotes:"“" "”"}
 .excuse p{margin:0;font-size:14.5px;color:var(--muted)}
 
-.share{display:grid;grid-template-columns:240px minmax(0,1fr);gap:32px;align-items:center}
+.share{display:grid;grid-template-columns:300px minmax(0,1fr);gap:32px;align-items:center}
 @media (max-width:700px){.share{grid-template-columns:minmax(0,1fr)}}
-.scard{aspect-ratio:9/16;max-width:240px;width:100%;border-radius:var(--r-lg);color:#fff;padding:20px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
-  background:radial-gradient(80% 60% at 85% 10%,rgba(122,150,255,.55),rgba(122,150,255,0)),linear-gradient(160deg,#05081C,#0B1440 55%,#1A2FB8)}
-.scard .t{font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.7}
-.scard .h{font-family:var(--f-display);font-weight:200;font-size:52px;line-height:1;letter-spacing:-.04em}
-.scard.fun .h{font-size:17px;font-weight:400;line-height:1.3;letter-spacing:-.01em}
-.scard .s{font-size:12.5px;opacity:.85;margin-top:8px}
-.scard .ft{display:flex;justify-content:space-between;align-items:center;font-size:11.5px}
-.scard .ft b{font-weight:600}
-.scard .ft span{background:#fff;color:#0B1440;border-radius:999px;padding:5px 10px;font-weight:600}
+.scv{display:block;width:100%;max-width:300px;height:auto;aspect-ratio:4/5;border-radius:var(--r-lg);box-shadow:var(--shadow,0 10px 30px rgba(5,8,28,.18))}
+.seg.wrap{flex-wrap:wrap;border-radius:24px;align-self:flex-start}
 
 footer{background:#000;color:rgba(255,255,255,.62);margin-top:40px;padding-block:40px calc(40px + env(safe-area-inset-bottom,0px));font-size:13px}
 footer .in{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px 40px}
@@ -201,7 +204,7 @@ footer p{margin:6px 0 0;max-width:62ch}
   <div class="in">
     <div class="bar"><span class="mark"><i aria-hidden="true"></i>Salary Check</span><span>India · Updated <span data-updated>November 2026</span></span></div>
     <h1>Are you paid what you're worth?</h1>
-    <p class="trust"><span>Based on 3,00,000+ verified salary data</span></p>
+    <p class="trust"><span>Based on 30,00,000+ verified salary data</span></p>
   </div>
 </header>
 
@@ -297,9 +300,9 @@ footer p{margin:6px 0 0;max-width:62ch}
       </div>
     </div>
     <div class="stack" id="funView" hidden>
-      <div class="excuse" id="excuse"><span class="tag">Not HR-approved</span><q id="ex1"></q><p id="ex2"></p></div>
+      <div class="excuse" id="excuse"><span class="tag" id="exTag">Not HR-approved</span><q id="ex1"></q><p id="ex2"></p></div>
       <div class="rgrid">
-        <div class="ask"><span class="k">Asking for</span><span class="amt tab" id="funAmt">—</span><span class="pct" id="funPct"></span></div>
+        <div class="ask" id="funAsk"><span class="k">Asking for</span><span class="amt tab" id="funAmt">—</span><span class="pct" id="funPct"></span></div>
         <p class="msg" id="funScript"></p>
       </div>
       <div class="row">
@@ -311,17 +314,16 @@ footer p{margin:6px 0 0;max-width:62ch}
   </section>
 
   <section class="card sec share">
-    <div class="scard" id="scard">
-      <span class="t" id="scT">What people like me earn</span>
-      <div><div class="h tab" id="scH">—</div><div class="s" id="scS"></div></div>
-      <div class="ft"><b>Salary Check</b><span>Check yours →</span></div>
-    </div>
+    <canvas class="scv" id="scv" width="1080" height="1350" role="img" aria-label="Your shareable result card"></canvas>
     <div class="stack">
-      <h2 id="shareH">Share the benchmark</h2>
-      <p class="sub" id="shareSub">Shares the typical pay for your profile, not your own salary.</p>
+      <h2 id="shareH">Share your result</h2>
+      <p class="sub" id="shareSub">Your own salary is never shown, only how you compare with the benchmark.</p>
+      <div class="seg wrap" role="group" aria-label="Card style" id="styleSeg"></div>
       <p class="msg" id="shareText"></p>
       <div class="row">
-        <button class="btn sm" type="button" id="dlStory" hidden>Download image</button>
+        <button class="btn sm" type="button" id="shareImg" hidden>Share image</button>
+        <button class="btn sm ghost" type="button" id="reroll" hidden>Another line</button>
+        <button class="btn sm ghost" type="button" id="dlStory" hidden>Download image</button>
         <a class="btn sm ghost" id="wa" href="https://wa.me/" target="_blank" rel="noopener">WhatsApp</a>
         <a class="btn sm ghost" id="xpost" href="https://twitter.com/intent/tweet" target="_blank" rel="noopener">X</a>
         <a class="btn sm ghost" id="li" href="https://www.linkedin.com/sharing/share-offsite/" target="_blank" rel="noopener">LinkedIn</a>
@@ -357,12 +359,12 @@ function track(n,p){ try{ window.mixpanel && window.mixpanel.track(n,p);}catch(e
 const ctcBand=c=>c<5?"<5":c<8?"5-8":c<10?"8-10":c<15?"10-15":c<25?"15-25":c<50?"25-50":"50+";
 const median=a=>{ const s=[...a].sort((x,y)=>x-y), m=s.length>>1; return s.length%2? s[m] : (s[m-1]+s[m])/2; };
 
-/* Non-serious excuses. {ctc} {ask} {role} {sharma} are filled in. */
+/* Non-serious lines. {role} {up} {askp} are filled in. None of them may contain a rupee amount: these get shared. */
 const EXCUSES=[
-  "Shaadi karni hai boss. Ladki {ask} maang rahi hai, aur main abhi {ctc} pe hoon. Math aap khud kar lo.",
+  "Shaadi karni hai boss. Ladki wale market rate maang rahe hain, aur main abhi discount pe chal raha hoon. Math aap khud kar lo.",
   "Rishta aunty ne biodata pe 'salary negotiable' likh diya. Ab negotiate aapko karna padega.",
-  "Sharma ji ka beta same {role} mein hai aur {sharma} le raha hai. Ghar pe mera dinner band hai.",
-  "Shaadi karni hai boss. Ladke wale bol rahe hain {ask} se kam pe 'family settled nahi lagti'.",
+  "Sharma ji ka beta same {role} mein hai aur mujhse zyada le raha hai. Ghar pe mera dinner band hai.",
+  "Shaadi karni hai boss. Ladke wale bol rahe hain is salary pe 'family settled nahi lagti'.",
   "Landlord ne itna rent badhaya hai ki technically main uske liye kaam karta hoon. Aapke liye toh part-time hai.",
   "iPhone ki EMI aur mera notice period, dono ek hi din khatam ho rahe hain. Choice aapki hai.",
   "Goa plan 2019 se pending hai. Group chat ne last warning de di hai.",
@@ -374,6 +376,25 @@ const EXCUSES=[
   "Biodata mein 'well-settled' likhna hai. Abhi sirf 'settled' hoon, woh bhi PG mein.",
   "Mummy ne kitty party mein bol diya ki main 'senior manager' hoon. Ab designation aur salary dono match karwani hai.",
   "Har appraisal mein 'next cycle mein dekhte hain' sunta hoon. Ab woh cycle main khud chalaunga. Ola wali nahi, salary wali."
+];
+/* Shown instead of excuses when the visitor is paid above the benchmark. */
+const BRAGS=[
+  "Sharma ji ka beta? Main hi hoon. Ab unke ghar pe meri misaal di jaati hai.",
+  "Market se {up}% upar. Boss ko mat batana, unhe lagta hai main sasta mila.",
+  "Rishta aunty ne biodata mein 'well-settled' ko bold aur underline kar diya hai.",
+  "Is baar Goa plan cancel nahi hoga. Treat meri taraf se, flight tum log dekh lo.",
+  "HR ne bola 'market correction'. Maine bola, market ko correct karo, mujhe nahi.",
+  "Appraisal meeting mein main kuch nahi maangta. Bas muskura deta hoon.",
+  "US wala cousin ab Diwali call pe salary nahi poochta. Topic badal deta hai.",
+  "Mummy ne kitty party mein jo bola tha, woh ab sach nikla."
+];
+/* Brand card: first entry whose min is at or below the visitor's % difference from the benchmark. Names only, no logos. */
+const BRANDS=[
+  {min:30,name:"iPhone Pro Max",line:"Costs more than it should. Nobody's complaining, least of all me."},
+  {min:5,name:"Starbucks",line:"Same coffee as everyone else, premium price. And they still get my name wrong."},
+  {min:-5,name:"Toyota",line:"Reliable. Fairly priced. Zero drama."},
+  {min:-25,name:"IKEA",line:"Great value, and I do all the assembly myself."},
+  {min:-Infinity,name:"Nokia 3310",line:"Indestructible. Runs all week. Priced like it's 2003."}
 ];
 
 /* ---------- setup ---------- */
@@ -401,7 +422,7 @@ function readProfile(){
   const tier=col?col.tier:(!isCA&&typed?$("colTier").value:"T4");
   return {role,yrs,named,empType:$("empType").value,city:$("city").value,edu:$("edu").value,college:col||(typed&&!isCA?{name:typed,tier,custom:true}:null),tier,ctc:parseFloat($("ctc").value)};
 }
-function fill(t){ return t.replace(/\{(\w+)\}/g,(m,k)=>{ const v={ctc:L(S.ctc),ask:L(S.funAsk),role:ROLES[S.role].label,sharma:L(S.ctc*1.7)}[k]; return v===undefined?m:v; }); }
+function fill(t){ return t.replace(/\{(\w+)\}/g,(m,k)=>{ const v={role:ROLES[S.role].label,up:Math.abs(S.pct),askp:S.askPct}[k]; return v===undefined?m:v; }); }
 
 /* ---------- render ---------- */
 function render(){
@@ -412,6 +433,7 @@ function render(){
   if(!submitted || missing().length) return;
   const e=estimate(p); const {med,p25,p75}=e; const ctc=p.ctc;
   S={...p,...e};
+  S.pct=Math.round((ctc-med)/med*100); S.tier=S.pct<=-5?"below":S.pct>=5?"above":"at";
 
   // headline
   $("est").innerHTML=L(med).replace(" L","<small>lakh a year</small>").replace(" Cr","<small>crore a year</small>");
@@ -525,7 +547,7 @@ For ${prof} and a background like mine, the top of the market range is ${L(p75)}
 
 Increments in our sector are projected at about ${hike}% for 2027. Given the scope I now carry, I'd like to discuss revising my fixed pay to ${L(ask)}. Could we find 20 minutes this week?`;
   }
-  ask=Math.round(ask*2)/2; S.ask=ask; S.funAsk=ask;
+  ask=Math.round(ask*2)/2; S.ask=ask; S.funAsk=ask; S.askPct=Math.round((ask/ctc-1)*100);
   body=body.replace(/revising my fixed pay to ₹[\d.]+ (L|Cr)/,"revising my fixed pay to "+L(ask));
   $("points").innerHTML=pts.map(x=>`<li><span>${x}</span></li>`).join("");
   $("askAmt").textContent=L(ask); $("askPct").textContent=`+${Math.round((ask/ctc-1)*100)}% · ${why}`;
@@ -533,51 +555,111 @@ Increments in our sector are projected at about ${hike}% for 2027. Given the sco
 }
 
 /* ---------- non-serious ---------- */
+const lines=()=>S.tier==="above"?BRAGS:EXCUSES;
+const statTxt=()=>S.tier==="at"?"Paid the market rate":`Paid ${Math.abs(S.pct)}% ${S.pct>0?"above":"below"} market`;
+const linkTxt=()=>SHARE_URL?": "+SHARE_URL:".";
 function renderFun(animate){
-  exIdx=exIdx.map(i=>i%EXCUSES.length);
-  const a=fill(EXCUSES[exIdx[0]]), b=fill(EXCUSES[exIdx[1]]);
+  const LN=lines(), above=S.tier==="above"; exIdx=exIdx.map(i=>i%LN.length); if(exIdx[0]===exIdx[1]) exIdx[1]=(exIdx[0]+1)%LN.length;
+  const a=fill(LN[exIdx[0]]), b=fill(LN[exIdx[1]]);
+  $("exTag").textContent=above?"Do not forward to HR":"Not HR-approved";
   $("ex1").textContent=a; $("ex2").textContent="Aur haan: "+b;
-  $("funAmt").textContent=L(S.funAsk); $("funPct").textContent=`+${Math.round((S.funAsk/S.ctc-1)*100)}% · emotional damages included`;
-  $("funScript").textContent=`Hi Boss,\n\nEk urgent baat thi. ${a}\n\n${b}\n\nToh mera revised CTC ${L(S.funAsk)} kar dijiye. Chai pe discuss karein?\n\nRegards,\n[Name] (soon to be well-settled)`;
+  $("funAsk").hidden=above; $("funScript").style.gridColumn=above?"1 / -1":"";
+  $("funAmt").textContent="+"+S.askPct+"%"; $("funPct").textContent="emotional damages included";
+  $("funScript").textContent=above
+    ? `Hi doston,\n\nEk chhoti si khabar thi. ${a}\n\n${b}\n\nParty meri taraf se. Date main bataunga.\n\nRegards,\n[Name] (market se upar, zameen pe)`
+    : `Hi Boss,\n\nEk urgent baat thi. ${a}\n\n${b}\n\nToh meri salary ${S.askPct}% badha dijiye. Chai pe discuss karein?\n\nRegards,\n[Name] (soon to be well-settled)`;
+  $("shuffle").textContent=above?"Another brag":"Another excuse";
   $("waFun").href="https://wa.me/?text="+encodeURIComponent(funShareText());
 }
-function funShareText(){ return `My official reason for a raise: "${fill(EXCUSES[exIdx[0]])}" Asking for ${L(S.funAsk)}. Find your excuse${SHARE_URL?": "+SHARE_URL:"."}`; }
+function funShareText(){ const q=fill(lines()[exIdx[0]%lines().length]);
+  return S.tier==="above" ? `${q} (${statTxt()}.) Where do you stand? Check in 30 seconds${linkTxt()}` : `My official reason for a raise: "${q}" Find your excuse${linkTxt()}`; }
 
-/* ---------- share ---------- */
+/* ---------- share ----------
+   The card is drawn on a canvas, so the preview on the page is exactly the image that gets shared.
+   No card style may show the visitor's own pay: only the % difference from the benchmark. */
+const STYLE_NAMES={mrp:"Price tag",brand:"Brand",line:"Excuse",classic:"Benchmark"};
+const STYLE_LIST=((CFG.shareStyles&&CFG.shareStyles.length)?CFG.shareStyles:["mrp","brand","line","classic"]).filter(k=>STYLE_NAMES[k]);
+let cardStyle=(()=>{ let q=null; try{ q=new URLSearchParams(location.search).get("card"); }catch(e){} return STYLE_NAMES[q]?q:(STYLE_LIST[0]||"classic"); })();
+let cardBlob=null, fontsAsked=false;
 function shareData(){
-  if(mode==="fun") return {fun:true,top:"My reason for a raise",h:"“"+fill(EXCUSES[exIdx[0]])+"”",s:`Asking for ${L(S.funAsk)}`,text:funShareText()};
+  const pct=Math.abs(S.pct), t=S.tier, ask=`Check in 30 seconds${linkTxt()}`;
+  if(cardStyle==="mrp"){
+    if(t==="below") return {look:"sale",top:"My market price",pre:"FLAT",big:pct+"%",post:"OFF",s:"That's the deal my company is getting on me. Offer ends this appraisal.",cta:"What's your MRP? →",
+      text:`My company is getting me at ${pct}% off my market price. What's your MRP? ${ask}`};
+    if(t==="above") return {look:"premium",top:"My market price",pre:"PRICED",big:pct+"%",post:"ABOVE MRP",s:"Premium pricing. No discounts, no returns.",cta:"What's your MRP? →",
+      text:`Turns out I'm priced ${pct}% above MRP. No discounts, no returns. What's your MRP? ${ask}`};
+    return {look:"plain",top:"My market price",pre:"SOLD AT",big:"MRP",s:"Paid the market rate. Rarest thing in corporate India.",cta:"What's your MRP? →",
+      text:`Turns out I'm sold at MRP: paid the market rate. What's your MRP? ${ask}`};
+  }
+  if(cardStyle==="brand"){ const b=BRANDS.find(b=>S.pct>=b.min)||BRANDS[BRANDS.length-1];
+    return {look:"cream",top:"If my salary were a brand",pre:"I'd be",big:b.name,s:b.line,stat:statTxt(),tone:t,cta:"Which brand are you? →",
+      text:`If my salary were a brand, I'd be ${b.name}. ${b.line} (${statTxt()}.) Which brand are you? ${ask}`}; }
+  if(cardStyle==="line"){ const q=fill(lines()[exIdx[0]%lines().length]);
+    return {look:"navy",quote:true,top:t==="above"?"My humble brag":"My reason for a raise",big:"“"+q+"”",stat:t==="above"?statTxt():`Asking for +${S.askPct}%`,cta:t==="above"?"Check yours →":"Find your excuse →",text:funShareText()}; }
   const who=`${ROLES[S.role].label.toLowerCase()} with ${Math.round(S.yrs)} years' experience in ${CITIES[S.city][0]}`;
   const peer=`${ROLES[S.role].label} with ${Math.round(S.yrs)} years' experience in ${CITIES[S.city][0]}`;
-  return {fun:false,top:"What people like me earn",h:L(S.med),s:`typical fixed pay for ${who}`,
-    text:`${peer}? Typical fixed pay is ${L(S.med)} a year (${L(S.p25)}–${L(S.p75)}). Are you paid what you're worth? Check yours in 30 seconds${SHARE_URL?": "+SHARE_URL:"."}`};
+  return {look:"navy",thin:true,top:"What people like me earn",big:L(S.med),s:`typical fixed pay for ${who}`,cta:"Check yours →",
+    text:`${peer}? Typical fixed pay is ${L(S.med)} a year (${L(S.p25)}–${L(S.p75)}). Are you paid what you're worth? Check yours in 30 seconds${linkTxt()}`};
 }
+function wrapText(ctx,text,maxW){ const w=text.split(/\s+/),out=[]; let c=""; for(const x of w){ const t=c?c+" "+x:x; if(ctx.measureText(t).width>maxW&&c){out.push(c);c=x;} else c=t; } if(c) out.push(c); return out; }
+const LOOKS={navy:{fg:"#FFFFFF",body:"#FFFFFF",pill:"#FFFFFF",pillFg:"#0B1440"},sale:{bg:"#FFD60A",fg:"#14110F",body:"#14110F",pill:"#14110F",pillFg:"#FFD60A"},
+  plain:{bg:"#F4F1EA",fg:"#14110F",body:"#14110F",pill:"#3D5AFE",pillFg:"#FFFFFF"},premium:{bg:"#0B0B0F",fg:"#F3D48B",body:"#FFFFFF",pill:"#F3D48B",pillFg:"#0B0B0F"},
+  cream:{bg:"#FBF7EF",fg:"#14110F",body:"#14110F",pill:"#14110F",pillFg:"#FBF7EF"}};
+const TONES={below:"#D7263D",at:"#3D5AFE",above:"#1F8A4C"};
+function drawCard(){
+  const c=$("scv"); if(!c||!S.role) return;
+  const d=shareData(), x=c.getContext("2d"), W=c.width, H=c.height, pad=84, mw=W-2*pad, K=LOOKS[d.look];
+  const F=(w,s,fam)=>`${w} ${s}px "${fam||"Inter"}", sans-serif`, rr=(a,b,w,h,r)=>{ x.beginPath(); x.roundRect? x.roundRect(a,b,w,h,r):x.rect(a,b,w,h); };
+  x.setLineDash([]); x.globalAlpha=1; x.textAlign="left"; x.textBaseline="alphabetic";
+  if(d.look==="navy"){ const g=x.createLinearGradient(0,0,W,H); g.addColorStop(0,"#05081C"); g.addColorStop(.55,"#0B1440"); g.addColorStop(1,"#1A2FB8"); x.fillStyle=g; x.fillRect(0,0,W,H);
+    const r=x.createRadialGradient(W*.8,H*.18,0,W*.8,H*.18,700); r.addColorStop(0,"rgba(122,150,255,.55)"); r.addColorStop(1,"rgba(122,150,255,0)"); x.fillStyle=r; x.fillRect(0,0,W,H); }
+  else { x.fillStyle=K.bg; x.fillRect(0,0,W,H); }
+  if(cardStyle==="mrp"){ // price tag: stitched edge and a punched hole
+    x.strokeStyle=K.fg; x.globalAlpha=.35; x.lineWidth=4; x.setLineDash([18,14]); rr(34,34,W-68,H-68,44); x.stroke(); x.setLineDash([]);
+    x.globalAlpha=.9; x.lineWidth=6; x.beginPath(); x.arc(W-pad-30,150,26,0,Math.PI*2); x.stroke(); x.globalAlpha=1; }
+  x.fillStyle=K.fg; x.font=F(600,38); x.fillText("Salary Check",pad,150);
+  x.globalAlpha=.65; x.font=F(600,28); x.fillText(d.top.toUpperCase(),pad,206); x.globalAlpha=1;
+  // body: measure every block first so the whole group can sit in the middle of the card
+  const items=[];
+  if(d.pre){ items.push({lines:[d.pre],font:F(600,54),size:54,lh:1.15,alpha:.9,gap:0,color:K.fg}); }
+  if(d.quote){ let s=80,ls; do{ s-=4; x.font=F(400,s,"Inter Tight"); ls=wrapText(x,d.big,mw); }while(ls.length*s*1.22>540&&s>44); items.push({lines:ls,font:F(400,s,"Inter Tight"),size:s,lh:1.22,alpha:1,gap:0,color:K.fg}); }
+  else { const wgt=d.thin?300:500; let s=/%$|^MRP$/.test(d.big)?400:(d.thin?300:190); x.font=F(wgt,s,"Inter Tight"); while(x.measureText(d.big).width>mw&&s>90){ s-=10; x.font=F(wgt,s,"Inter Tight"); }
+    items.push({lines:[d.big],font:F(wgt,s,"Inter Tight"),size:s,lh:.92,alpha:1,gap:6,color:K.fg}); }
+  if(d.post){ items.push({lines:[d.post],font:F(500,92,"Inter Tight"),size:92,lh:1.1,alpha:1,gap:0,color:K.fg}); }
+  if(d.s){ x.font=F(400,44); items.push({lines:wrapText(x,d.s,mw),font:F(400,44),size:44,lh:1.4,alpha:.85,gap:34,color:K.body}); }
+  if(d.stat){ items.push({pill:d.stat,size:84,lh:1,gap:44,lines:[""]}); }
+  const total=items.reduce((n,i)=>n+i.gap+i.lines.length*i.size*i.lh,0), top=250, bottom=H-290;
+  let y=Math.max(top,top+(bottom-top-total)/2);
+  for(const it of items){ y+=it.gap;
+    if(it.pill){ x.font=F(600,38); const w=x.measureText(it.pill).width+72; x.fillStyle=d.tone?TONES[d.tone]:"rgba(255,255,255,.16)"; rr(pad,y,w,84,42); x.fill(); x.fillStyle="#FFFFFF"; x.fillText(it.pill,pad+36,y+55); y+=84; continue; }
+    x.font=it.font; x.fillStyle=it.color; x.globalAlpha=it.alpha;
+    for(const l of it.lines){ y+=it.size*it.lh; x.fillText(l,pad,y-it.size*(it.lh-.82)/2-it.size*.06); }
+    x.globalAlpha=1; }
+  // footer: call to action, the page address (so the link survives if a chat app drops the caption) and what the % is measured against
+  x.font=F(600,40); const cw=x.measureText(d.cta).width+96; x.fillStyle=K.pill; rr(pad,H-250,cw,104,52); x.fill(); x.fillStyle=K.pillFg; x.fillText(d.cta,pad+48,H-185);
+  x.fillStyle=K.fg; x.globalAlpha=.75; x.font=F(500,30); x.fillText((SHARE_URL||"").replace(/^https?:\/\//,"").replace(/\/$/,""),pad,H-80);
+  if(cardStyle!=="classic"){ x.globalAlpha=.55; x.font=F(400,26); x.textAlign="right"; x.fillText("vs benchmark for similar profiles",W-pad,H-80); x.textAlign="left"; }
+  x.globalAlpha=1;
+  c.setAttribute("aria-label","Share card: "+d.text.replace(/\s*(Check|Find|Where)[^.?]*(in 30 seconds)?[:.]?\s*https?:\S+$/,""));
+  cardBlob=null; try{ c.toBlob(b=>{ cardBlob=b; },"image/png"); }catch(e){}
+}
+const cardFileName=()=>({mrp:"my-market-price",brand:"my-salary-brand",line:S.tier==="above"?"my-humble-brag":"my-raise-excuse",classic:"salary-benchmark"}[cardStyle])+".png";
+function cardImage(){ return cardBlob?Promise.resolve(cardBlob):new Promise(r=>$("scv").toBlob(r,"image/png")); }
 function renderShare(){
-  const d=shareData();
-  $("scard").classList.toggle("fun",d.fun); $("scT").textContent=d.top; $("scH").textContent=d.h; $("scS").textContent=d.s;
-  $("shareH").textContent=d.fun?"Send this to your team":"Share the benchmark";
-  $("shareSub").textContent=d.fun?"Shuffle until you find the one that's a little too true.":"Shares the typical pay for your profile, not your own salary.";
+  const d=shareData(), names={...STYLE_NAMES,line:S.tier==="above"?"Brag":"Excuse"};
+  $("styleSeg").hidden=STYLE_LIST.length<2;
+  $("styleSeg").innerHTML=STYLE_LIST.map(k=>`<button type="button" data-style="${k}" aria-pressed="${k===cardStyle}">${names[k]}</button>`).join("");
+  $("reroll").hidden=cardStyle!=="line"; $("reroll").textContent=S.tier==="above"?"Another brag":"Another excuse";
   $("shareText").textContent=d.text;
   $("wa").href="https://wa.me/?text="+encodeURIComponent(d.text);
   $("xpost").href="https://twitter.com/intent/tweet?text="+encodeURIComponent(d.text);
   $("li").href="https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent(SHARE_URL||location.href);
   $("li").hidden=!SHARE_URL;
+  drawCard();
+  if(!fontsAsked&&document.fonts&&document.fonts.load){ fontsAsked=true; // canvas text needs the web fonts loaded before it is drawn
+    Promise.all(['500 100px "Inter Tight"','400 100px "Inter Tight"','300 100px "Inter Tight"','600 40px "Inter"','500 40px "Inter"','400 40px "Inter"'].map(f=>document.fonts.load(f))).then(drawCard,()=>{}); }
 }
-function wrapText(ctx,text,maxW){ const w=text.split(/\s+/),out=[]; let c=""; for(const x of w){ const t=c?c+" "+x:x; if(ctx.measureText(t).width>maxW&&c){out.push(c);c=x;} else c=t; } if(c) out.push(c); return out; }
-async function storyBlob(){
-  try{ await document.fonts.load('300 100px "Inter Tight"'); await document.fonts.load('500 40px "Inter"'); }catch(e){}
-  const d=shareData(), W=1080,H=1920,c=document.createElement("canvas"); c.width=W;c.height=H; const x=c.getContext("2d"), pad=96;
-  const g=x.createLinearGradient(0,0,W,H); g.addColorStop(0,"#05081C"); g.addColorStop(.55,"#0B1440"); g.addColorStop(1,"#1A2FB8"); x.fillStyle=g; x.fillRect(0,0,W,H);
-  const r=x.createRadialGradient(W*.8,H*.18,0,W*.8,H*.18,700); r.addColorStop(0,"rgba(122,150,255,.55)"); r.addColorStop(1,"rgba(122,150,255,0)"); x.fillStyle=r; x.fillRect(0,0,W,H);
-  x.fillStyle="#FFFFFF"; x.font='600 40px "Inter", sans-serif'; x.fillText("Salary Check",pad,190);
-  x.globalAlpha=.65; x.font='500 32px "Inter", sans-serif'; x.fillText(d.top.toUpperCase(),pad,260); x.globalAlpha=1;
-  let y;
-  if(d.fun){ let s=80,lines; do{ x.font=`400 ${s}px "Inter Tight", sans-serif`; lines=wrapText(x,d.h,W-2*pad); s-=4; }while(lines.length*s*1.22>1000&&s>40); s+=4; y=460; for(const l of lines){ x.fillText(l,pad,y); y+=s*1.22; } }
-  else { let s=300; x.font=`300 ${s}px "Inter Tight", sans-serif`; while(x.measureText(d.h).width>W-2*pad&&s>120){ s-=10; x.font=`300 ${s}px "Inter Tight", sans-serif`; } y=880; x.fillText(d.h,pad,y); y+=40; }
-  x.globalAlpha=.85; x.font='400 48px "Inter", sans-serif'; for(const l of wrapText(x,d.s,W-2*pad)){ y+=68; x.fillText(l,pad,y); } x.globalAlpha=1;
-  x.fillStyle="#FFFFFF"; x.beginPath(); x.roundRect? x.roundRect(pad,H-320,520,112,56):x.rect(pad,H-320,520,112); x.fill();
-  x.fillStyle="#0B1440"; x.font='600 42px "Inter", sans-serif'; x.fillText("Check yours →",pad+48,H-250);
-  return new Promise(r=>c.toBlob(r,"image/png"));
-}
+$("styleSeg").addEventListener("click",e=>{ const b=e.target.closest("button[data-style]"); if(!b) return; cardStyle=b.dataset.style; renderShare(); track("share_style_chosen",{style:cardStyle,tier:S.tier}); });
 
 /* ---------- trust count ----------
    Shown only once enough people have used the page that the number means something. */
@@ -655,17 +737,28 @@ function setMode(m){ mode=m; $("mSerious").setAttribute("aria-pressed",m==="seri
   $("raiseSub").textContent=m==="serious"?"Data points to take into your next conversation with your manager.":"For the group chat, not your manager.";
   if(m==="fun") renderFun(true); renderShare(); track("raise_mode_toggled",{mode:m}); }
 $("mSerious").addEventListener("click",()=>setMode("serious")); $("mFun").addEventListener("click",()=>setMode("fun"));
-$("shuffle").addEventListener("click",()=>{ const n=EXCUSES.length; let a,b; do{a=Math.floor(Math.random()*n);}while(a===exIdx[0]); do{b=Math.floor(Math.random()*n);}while(b===a); exIdx=[a,b]; renderFun(true); renderShare(); track("excuse_shuffled",{}); });
+function reroll(){ const n=lines().length; let a,b; do{a=Math.floor(Math.random()*n);}while(a===exIdx[0]); do{b=Math.floor(Math.random()*n);}while(b===a); exIdx=[a,b]; renderFun(true); renderShare(); track("excuse_shuffled",{tier:S.tier}); }
+$("shuffle").addEventListener("click",reroll); $("reroll").addEventListener("click",reroll);
 function copy(text,ok,src,ev){ const done=()=>{ok.hidden=false;setTimeout(()=>ok.hidden=true,1800);track(ev,{mode});}; const fb=()=>{const r=document.createRange();r.selectNodeContents(src);const s=getSelection();s.removeAllRanges();s.addRange(r);};
   try{navigator.clipboard.writeText(text).then(done).catch(fb);}catch(e){fb();} }
 $("copyScript").addEventListener("click",()=>copy($("script").textContent,$("okScript"),$("script"),"raise_script_copied"));
 $("copyFun").addEventListener("click",()=>copy($("funScript").textContent,$("okFun"),$("funScript"),"fun_script_copied"));
 $("copyShare").addEventListener("click",()=>copy($("shareText").textContent,$("okShare"),$("shareText"),"share_copied"));
-["wa","xpost","li","waFun"].forEach(id=>$(id).addEventListener("click",()=>track("share_clicked",{channel:id,mode})));
-$("dlStory").addEventListener("click",async()=>{ const err=$("dlErr"); err.hidden=true; if(!DL) return;
-  try{ await DL.save({filename:mode==="fun"?"my-raise-excuse.png":"salary-benchmark.png",data:await storyBlob()}); track("story_downloaded",{mode}); }
+["wa","xpost","li","waFun"].forEach(id=>$(id).addEventListener("click",()=>track("share_clicked",{channel:id,style:id==="waFun"?"line":cardStyle,tier:S.tier})));
+async function saveImage(){ const err=$("dlErr"); err.hidden=true; if(!DL) return;
+  try{ await DL.save({filename:cardFileName(),data:await cardImage()}); track("story_downloaded",{style:cardStyle,tier:S.tier}); }
   catch(e){ if(e&&e.code==="declined") return; if(e&&["unavailable","not_granted","capability_disabled","capability_removed"].includes(e.code)){ $("dlStory").hidden=true; return; }
-    err.textContent=e&&e.code==="rate_limited"?"A save is already waiting for you to confirm.":"Couldn't create the image. Try again."; err.hidden=false; } });
+    err.textContent=e&&e.code==="rate_limited"?"A save is already waiting for you to confirm.":"Couldn't create the image. Try again."; err.hidden=false; } }
+/* One tap: hand the image, caption and link to the phone's share sheet. Browsers that can't share files fall back to a download. */
+async function shareImage(){
+  const blob=await cardImage(); let file=null; try{ file=new File([blob],cardFileName(),{type:"image/png"}); }catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],text:shareData().text}); track("share_clicked",{channel:"native",style:cardStyle,tier:S.tier}); return; }
+    catch(e){ if(e&&e.name==="AbortError") return; } }
+  saveImage();
+}
+$("dlStory").addEventListener("click",saveImage); $("shareImg").addEventListener("click",shareImage);
+try{ $("shareImg").hidden=!(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([""],"a.png",{type:"image/png"})]})); }catch(e){}
 
 render();
 document.fonts && document.fonts.ready.then(render);

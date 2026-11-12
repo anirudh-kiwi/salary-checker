@@ -3,6 +3,7 @@ window.SALARY_CHECK_CONFIG = {
   shareUrl: "https://finindex.co.in/salary-check/",       // public address of this page, used by the share buttons
   submitEndpoint: "",  // URL that receives each submission (e.g. the Google Sheet script); empty = nothing saved
   metaPixelId: "",     // Meta Pixel ID; empty = no Meta tracking
+  shareStyles: ["mrp", "brand", "line", "classic"],  // share cards offered on the results page, first is the default: mrp = price tag, brand, line = excuse or brag, classic = benchmark
   dataUpdated: "November 2026",  // shown as "Updated ..." at the top and bottom; change it when the salary figures are refreshed
   highIncomeBands: ["10-15", "15-25", "25-50", "50+"],  // fixed-pay bands (₹ lakh) that count as 10 lakh and above
   highIncomeEvent: "SalaryCheck10LPlus"                 // Meta custom event sent for those visitors
@@ -13,6 +14,10 @@ window.SALARY_CHECK_CONFIG = {
   fbq('init', c.metaPixelId);
   fbq('track', 'PageView');
   window.kiwiTrack = function (name, props) {
+    if (name === 'share_clicked' || name === 'story_downloaded') {   // one event per share, with the card style and channel
+      fbq('trackCustom', 'SalaryCheckShared', { channel: (props && props.channel) || 'download', style: props && props.style, tier: props && props.tier });
+      return;
+    }
     if (name !== 'salary_check_submitted' || !props || !props.first) return;
     fbq('trackCustom', 'SalaryCheckSubmitted');
     if (c.highIncomeBands.indexOf(props.ctc_band) !== -1) fbq('trackCustom', c.highIncomeEvent);
