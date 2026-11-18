@@ -1,6 +1,6 @@
 /* Salary Check settings. Edit this file only; index.html reads it. */
 window.SALARY_CHECK_CONFIG = {
-  shareUrl: "https://finindex.co.in/salary-check/",       // public address of this page, used by the share buttons
+  shareUrl: "https://salary-checker-eight.vercel.app/salary-check/",       // public address of this page, used by the share buttons. TEMPORARY: switch back to https://finindex.co.in/salary-check/ once the domain works
   submitEndpoint: "",  // URL that receives each submission (e.g. the Google Sheet script); empty = nothing saved
   metaPixelId: "",     // Meta Pixel ID; empty = no Meta tracking
   shareStyles: ["mrp", "brand", "report", "line", "classic"],  // share cards offered on the results page, first is the default: mrp = price tag, brand, report = report card for the employer, line = excuse or brag, classic = benchmark
