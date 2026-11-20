@@ -18,7 +18,9 @@
 <link rel="canonical" href="https://salary-checker-eight.vercel.app/salary-check/">
 <script>
 /* Hide the form before first paint when this visit will show (or jump to) a saved result. */
-try{ if(/\/salary-check\/result\/?$/.test(location.pathname)||(localStorage.getItem("salary_check_answers_v1")&&!/^#(edit|reset)$/.test(location.hash))) document.documentElement.classList.add("r"); }catch(e){}
+/* Test mode: open the page with ?test=1 (and ?test=0 to leave). Answers are kept apart, nothing is saved or counted. */
+try{ const t=new URLSearchParams(location.search).get("test"); if(t==="1") localStorage.setItem("salary_check_test","1"); else if(t==="0") localStorage.removeItem("salary_check_test"); window.SC_TEST=localStorage.getItem("salary_check_test")==="1"; }catch(e){ window.SC_TEST=/[?&]test=1/.test(location.search); }
+try{ if(/\/salary-check\/result\/?$/.test(location.pathname)||(localStorage.getItem(window.SC_TEST?"salary_check_test_answers":"salary_check_answers_v1")&&!/^#(edit|reset)$/.test(location.hash))) document.documentElement.classList.add("r"); }catch(e){}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -98,9 +100,25 @@ html.r #formView{display:none}
 .hero{background:#000;color:#FFFFFF;padding-bottom:28px}
 .hero .col{display:flex;flex-direction:column;gap:16px}
 .card{display:block;width:100%;height:auto;aspect-ratio:4/5;border-radius:20px;background:#1F1F1F}
-.seg{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:4px;padding:4px;border-radius:999px;background:#1F1F1F}
-.seg button{height:40px;border:0;border-radius:999px;background:transparent;color:#C5CBBE;font-size:14px;font-weight:600;cursor:pointer}
-.seg button[aria-pressed="true"]{background:#FFFFFF;color:#000}
+/* card carousel: the next card peeks in at the edge; the active dot fills over 10 seconds while it moves on its own */
+.car{position:relative;margin:0 -20px}
+.track{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 28px;scrollbar-width:none;overscroll-behavior-x:contain}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always}
+.arw{display:none;position:absolute;top:50%;width:40px;height:40px;margin-top:-20px;border:0;border-radius:999px;background:rgba(255,255,255,.92);color:#000;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.arw.prev{left:8px}.arw.next{right:8px}
+@media (hover:hover) and (pointer:fine){.arw{display:flex}}
+.dots{display:flex;justify-content:center;margin-top:-6px}
+.dots button{display:flex;align-items:center;height:28px;padding:0 4px;border:0;background:none;cursor:pointer}
+.dots i{position:relative;display:block;width:8px;height:8px;border-radius:999px;background:#4A4A4A;overflow:hidden;transition:width .25s}
+.dots [aria-current="true"] i{width:32px}
+.dots [aria-current="true"] i::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#FFFFFF;transform-origin:left center}
+.dots.auto [aria-current="true"] i::after{animation:fill 10s linear forwards}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.testbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px max(16px,env(safe-area-inset-left,0px));background:#FFF1CC;color:#4A3300;font-size:13px;font-weight:600}
+.testbar div{display:flex;gap:8px;align-items:center}
+.testbar button{white-space:nowrap;height:32px;padding:0 14px;border:0;border-radius:999px;background:#000;color:#FFF;font-size:13px;font-weight:600;cursor:pointer}
+.testbar a{color:#4A3300}
 .icons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .ico{display:flex;flex-direction:column;align-items:center;gap:8px;padding:0;border:0;background:transparent;color:#FFFFFF;text-decoration:none;cursor:pointer;font-size:12px;font-weight:500}
 .ico span{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:999px;background:#1F1F1F}
@@ -153,12 +171,13 @@ html.r #formView{display:none}
 </style>
 </head>
 <body>
+<div class="testbar" id="testbar" hidden><span>Test mode: not saved or counted</span><div><button type="button" id="testReset">Start again</button><a href="/salary-check/?test=0#reset">Exit</a></div></div>
 
 <!-- ======================= FORM ======================= -->
 <main id="formView" class="col">
   <div class="top"><span class="mark"><i aria-hidden="true"></i>Salary Check</span></div>
   <h1>Are you paid what you're worth?</h1>
-  <p class="lede">6 questions · 30 seconds · anonymous</p>
+  <p class="lede">Based on 30,00,000+ salaries · Updated <span data-updated>November 2026</span></p>
 
   <form id="f" class="fields" novalidate autocomplete="off">
     <div class="fld" data-key="role">
@@ -247,7 +266,6 @@ html.r #formView{display:none}
     <div class="cta">
       <p class="formerr" id="formErr" role="alert" hidden></p>
       <button class="go" type="submit" id="go">Check my pay</button>
-      <p class="fine">Based on 30,00,000+ salaries · Updated <span data-updated>November 2026</span></p>
     </div>
   </form>
 </main>
@@ -257,8 +275,12 @@ html.r #formView{display:none}
   <section class="hero" aria-label="Your shareable result">
     <div class="col">
       <div class="top"><span class="mark"><i aria-hidden="true"></i>Salary Check</span><small>Your result</small></div>
-      <canvas class="card" id="card" width="1080" height="1350" role="img" aria-label="Your result card"></canvas>
-      <div class="seg" id="tones" role="group" aria-label="Line on your card"></div>
+      <div class="car" role="region" aria-roledescription="carousel" aria-label="Your result card. Swipe for another line.">
+        <div class="track" id="track"></div>
+        <button class="arw prev" type="button" id="prevCard" aria-label="Previous card"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <button class="arw next" type="button" id="nextCard" aria-label="Next card"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="dots" id="dots" role="group" aria-label="Pick a card"></div>
       <a class="go" id="shareMain" href="https://wa.me/" target="_blank" rel="noopener">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5z"/></svg>
         Share on WhatsApp
@@ -326,7 +348,8 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 function L(x){ if(x>=100) return "₹"+(x/100).toFixed(x>=1000?0:2).replace(/\.?0+$/,"")+" Cr"; return "₹"+(x<10? (Math.round(x*10)/10).toString() : Math.round(x))+" L"; }
 const inr=n=>"₹"+Math.round(n).toLocaleString("en-IN");
 const pctTxt=f=>{ const p=Math.round((f-1)*100); return p===0?"No change":(p>0?"+":"−")+Math.abs(p)+"%"; };
-function track(n,p){ try{ window.mixpanel && window.mixpanel.track(n,p);}catch(e){} try{ window.kiwiTrack && window.kiwiTrack(n,p);}catch(e){} }
+const TEST=!!window.SC_TEST;   // ?test=1: try as often as you like; nothing is saved or counted
+function track(n,p){ if(TEST) return; try{ window.mixpanel && window.mixpanel.track(n,p);}catch(e){} try{ window.kiwiTrack && window.kiwiTrack(n,p);}catch(e){} }
 const ctcBand=c=>c<5?"<5":c<8?"5-8":c<10?"8-10":c<15?"10-15":c<25?"15-25":c<50?"25-50":"50+";
 
 /* ---------- what people pick from ----------
@@ -492,19 +515,21 @@ function afterPick(key){
 
 const dispRole=()=>{ const o=ROLE_OPTS.find(o=>o.key===A.role); return o?o.label:""; };
 const dispCity=()=>{ const o=CITY_OPTS.find(o=>o.key===A.city); return o?o.label:""; };
-const dispEmp=()=>A.empNamed?A.emp:A.empType?(A.emp?`${A.emp} · ${TYPE_SHORT[A.empType]}`:(TYPE_OPTS.find(o=>o.key===A.empType)||{}).label||""):"";
+const dispEmp=()=>A.empNamed?A.emp:(A.empType==="other"&&A.emp)?A.emp:A.empType?(A.emp?`${A.emp} · ${TYPE_SHORT[A.empType]}`:(TYPE_OPTS.find(o=>o.key===A.empType)||{}).label||""):"";
 const dispCol=()=>!A.colTier?"":COLLEGES.some(c=>c.name===A.college)?A.college:A.college?`${A.college} (not listed)`:(A.colTier==="T3"?"Well-known college":"Other college");
 
 let empMode="names", empTyped="";
 makeCombo("role",{ph:"Search, e.g. developer, sales",items:()=>ROLE_OPTS,display:dispRole,
   pick:o=>{ A.role=o.key; if(o.key==="ca"&&!A.edu) setEdu("ca"); }});
-makeCombo("city",{ph:"Search city",items:()=>CITY_OPTS,display:dispCity,pick:o=>{ A.city=o.key; }});
+makeCombo("city",{ph:"Search city",items:()=>CITY_OPTS,display:dispCity,pick:o=>{ A.city=o.key; },
+  noMatch:q=>[{label:`“${q}” isn't on our list. Pick one:`,none:true}].concat(CITY_OPTS.filter(o=>o.key==="t2"||o.key==="small"))});
 makeCombo("emp",{ph:()=>empMode==="types"?"Pick the type of company":"Search your company",
   items:()=>empMode==="types"?TYPE_OPTS:EMP_OPTS, max:()=>empMode==="types"?0:6, display:dispEmp,
   extra:q=>empMode==="types"?[]:[{label:"Not on the list? Pick the type of company",act:true,then:()=>{ empTyped=q.trim(); empMode="types"; }}],
   /* a company we don't know: ask for its type straight away, keeping the name they typed */
-  noMatch:q=>empMode==="types"?[{label:`No match for “${q}”.`,none:true}].concat(TYPE_OPTS):[{label:`“${q}” isn't on our list. Pick the type of company:`,none:true}].concat(TYPE_OPTS),
-  pick:(o,q)=>{ if(o.emp){ A.emp=o.emp.name; A.empNamed=true; A.empType=o.emp.type; } else { A.emp=(empTyped||(empMode==="names"?q:"")||"").slice(0,80); A.empNamed=false; A.empType=o.key; } empMode="names"; empTyped=""; },
+  /* a company we don't know is taken as typed, as "Something else"; picking a type stays possible */
+  noMatch:q=>empMode==="types"?[{label:`No match for “${q}”.`,none:true}].concat(TYPE_OPTS):[{label:`Use “${q}”`,typed:true},{label:"Or pick the type of company",act:true,then:()=>{ empTyped=q; empMode="types"; }}],
+  pick:(o,q)=>{ if(o.typed){ A.emp=(q||"").slice(0,80); A.empNamed=false; A.empType="other"; } else if(o.emp){ A.emp=o.emp.name; A.empNamed=true; A.empType=o.emp.type; } else { A.emp=(empTyped||(empMode==="names"?q:"")||"").slice(0,80); A.empNamed=false; A.empType=o.key; } empMode="names"; empTyped=""; },
   onClose:()=>{ empMode="names"; empTyped=""; }});
 makeCombo("col",{ph:"Search college",max:5,items:()=>COL_OPTS,display:dispCol,
   extra:()=>[{label:"Not listed: a well-known college",act:true,fb:"T3"},{label:"Not listed: any other college",act:true,fb:"T4"}],
@@ -526,13 +551,13 @@ function fillForm(a){
 }
 
 /* ---------- submit ---------- */
-const SAVE_KEY="salary_check_answers_v1", PENDING_KEY="salary_check_pending";
+const SAVE_KEY=TEST?"salary_check_test_answers":"salary_check_answers_v1", PENDING_KEY="salary_check_pending";
 const HOSTED=/\/salary-check(\/|$)/.test(location.pathname), ON_RESULT=/\/salary-check\/result\/?$/.test(location.pathname);
 const FORM_URL="/salary-check/", RESULT_URL="/salary-check/result";
 let EDITING=false;
 function loadSaved(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY)||"null"); }catch(e){ return null; } }
 function saveSubmission(a,p,e){
-  if(!SUBMIT_ENDPOINT) return;
+  if(TEST||!SUBMIT_ENDPOINT) return;
   const no=NO_COL.includes(a.edu), r1=v=>Math.round(v*10)/10;
   const rec={role:a.role,yrs:r1(p.yrs),company:(a.emp||"").slice(0,80),companyMatched:p.named?p.named.name:"",empType:p.empType,city:a.city,edu:a.edu,
     college:no?"":(a.college||"").slice(0,100),collegeTier:no?"":p.tier,fixedPay:r1(p.ctc),benchmark:r1(e.med),rangeLow:r1(e.p25),rangeHigh:r1(e.p75),at:Date.now()};
@@ -585,28 +610,28 @@ const CARD_COPY={
 };
 /* The message that goes with the image. It ends with the link. */
 const CAPTION={
-  below:{savage:"Turns out I'm {p} underpaid. My company found the sale before I did. Check yours in 30 seconds",
-         hinglish:"Pata chala market se {p} kam mil raha hai. Mummy ko mat batana. Apna check karo, 30 second lagenge",
-         straight:"I checked: I'm paid {p} below market for my role, city and experience. Check yours in 30 seconds"},
-  at:{savage:"Turns out I'm sold at MRP. Exactly market rate, no discount, no premium. Check yours in 30 seconds",
-      hinglish:"Salary bilkul market rate pe hai. Na zyada, na kam. Apna check karo, 30 second lagenge",
-      straight:"I checked: I'm paid right at market for my role, city and experience. Check yours in 30 seconds"},
-  above:{savage:"Turns out I'm paid {p} above market. Not saying I'm worth it. The data is. Can you beat {p}? Check in 30 seconds",
-         hinglish:"Market se {p} zyada. Sharma ji ka beta? Main hi hoon. Tum apna check karo, 30 second lagenge",
-         straight:"I checked: I'm paid {p} above market for my role, city and experience. Check yours in 30 seconds"}
+  below:{savage:"Turns out I'm {p} underpaid. My company found the sale before I did. Are you underpaid too? Find out in 30 seconds",
+         hinglish:"Pata chala market se {p} kam mil raha hai. Mummy ko mat batana. Tumhe bhi kam mil raha hai? 30 second mein check karo",
+         straight:"I checked: I'm paid {p} below market for my role, city and experience. Are you underpaid too? Find out in 30 seconds"},
+  at:{savage:"Turns out I'm sold at MRP. Exactly market rate, no discount, no premium. Are you paid fairly? Find out in 30 seconds",
+      hinglish:"Salary bilkul market rate pe hai. Na zyada, na kam. Tumhari sahi hai? 30 second mein check karo",
+      straight:"I checked: I'm paid right at market for my role, city and experience. Are you paid fairly? Find out in 30 seconds"},
+  above:{savage:"Turns out I'm paid {p} above market. Not saying I'm worth it. The data is. Can you beat {p}? Find out in 30 seconds",
+         hinglish:"Market se {p} zyada. Sharma ji ka beta? Main hi hoon. Tum {p} beat kar sakte ho? 30 second mein check karo",
+         straight:"I checked: I'm paid {p} above market for my role, city and experience. Can you beat {p}? Find out in 30 seconds"}
 };
 const CARD_BG={below:"#F25CC4",at:"#FFB84B",above:"#81D829"};
 const TAPE={below:"CERTIFIED UNDERPAID",at:"CERTIFIED FAIRLY PAID",above:"CERTIFIED WELL PAID"};
 const pctStr=()=>Math.abs(R.pct)+"%";
-function cardCopy(){ const c=CARD_COPY[R.res][tone], o={}; for(const k in c) o[k]=c[k].replace("{p}",pctStr());
-  if(R.res==="above"&&tone==="straight"&&R.ctc>=R.p75) o.line="Top quarter for my profile."; return o; }
+function cardCopy(tn=tone){ const c=CARD_COPY[R.res][tn], o={}; for(const k in c) o[k]=c[k].replace("{p}",pctStr());
+  if(R.res==="above"&&tn==="straight"&&R.ctc>=R.p75) o.line="Top quarter for my profile."; return o; }
 const cardQ=()=>R.res==="below"?"Are you underpaid too?":R.res==="at"?"Are you paid fairly?":`Can you beat ${pctStr()}?`;
 const site=()=>(SHARE_URL||"").replace(/^https?:\/\//,"").replace(/\/$/,"");
 const linkTail=()=>SHARE_URL?": "+SHARE_URL:".";
 const caption=()=>CAPTION[R.res][tone].split("{p}").join(pctStr())+linkTail();
 function profileTxt(){ const p=R.p, y=Math.round(p.yrs), yt=y===0?"Fresher":y===1?"1 yr":y+" yrs";
   return [ROLE_CARD[p.role],yt,NO_CITY_ON_CARD.includes(p.city)?"":CITIES[p.city][0]].filter(Boolean).join(" · "); }
-const cardAlt=()=>{ const t=cardCopy(); return `${t.pre} ${t.big} ${t.post} ${t.line} ${cardQ()}`; };
+const cardAlt=tn=>{ const t=cardCopy(tn); return `${t.pre} ${t.big} ${t.post} ${t.line}`; };
 
 const FONT='Sora, "Helvetica Neue", Arial, sans-serif';
 const canLS=(()=>{ try{ return "letterSpacing" in document.createElement("canvas").getContext("2d"); }catch(e){ return false; } })();
@@ -615,10 +640,10 @@ function spaced(x,s,X,Y,ls){ if(canLS){ x.letterSpacing=ls+"px"; x.fillText(s,X,
 function wrap(x,text,maxW){ const w=text.split(/\s+/), out=[]; let c=""; for(const s of w){ const t=c?c+" "+s:s; if(x.measureText(t).width>maxW&&c){ out.push(c); c=s; } else c=t; } if(c) out.push(c); return out; }
 /* same number of lines, but evened out, so no single word is left alone on the last line */
 function wrapEven(x,text,maxW){ const n=wrap(x,text,maxW).length; if(n<2) return [text]; let lo=maxW*.3, hi=maxW; for(let i=0;i<14;i++){ const m=(lo+hi)/2; if(wrap(x,text,m).length>n) lo=m; else hi=m; } return wrap(x,text,hi); }
-function drawCard(cv,fmt){
+function drawCard(cv,fmt,tn=tone){
   const story=fmt==="story", W=1080, H=story?1920:1350, k=W/360;
   if(cv.width!==W) cv.width=W; if(cv.height!==H) cv.height=H;
-  const x=cv.getContext("2d"), bg=CARD_BG[R.res], t=cardCopy(), F=(w,s)=>`${w} ${s}px ${FONT}`;
+  const x=cv.getContext("2d"), bg=CARD_BG[R.res], t=cardCopy(tn), F=(w,s)=>`${w} ${s}px ${FONT}`;
   const pad=24*k, inner=W-2*pad;
   // a line box of height s*lh, with capitals centred in it
   const put=(txt,s,lh,top,ls)=>{ const y=top+s*lh/2+s*.36; if(ls) spaced(x,txt,pad,y,ls); else x.fillText(txt,pad,y); return top+s*lh; };
@@ -640,13 +665,13 @@ function drawCard(cv,fmt){
   let prof=profileTxt(); while(x.measureText(prof).width>inner&&prof.length>4) prof=prof.slice(0,-2).trim()+"…";
   y=put(prof,pFs,1.3,y);
 
-  // footer, as plain text: the question and the address
-  const qFs=(story?20:16)*k, padB=(story?112:22)*k, s=site();
+  // footer, Story only (Instagram drops the caption): the question and the address. On the post card these travel in the message.
+  const qFs=20*k, padB=(story?112:28)*k, s=site();
   let uFs=(story?13:11.5)*k; x.font=F(600,uFs);
   let uL=s?["Find out in 30 seconds · "+s]:["Find out in 30 seconds"];
   if(x.measureText(uL[0]).width>inner) uL=["Find out in 30 seconds at",s];
   while(Math.max(...uL.map(l=>x.measureText(l).width))>inner&&uFs>8*k){ uFs-=.5*k; x.font=F(600,uFs); }
-  const footH=2*k+12*k+qFs*1.25+2*k+uL.length*uFs*1.35, footTop=H-padB-footH;
+  const footH=story?2*k+12*k+qFs*1.25+2*k+uL.length*uFs*1.35:0, footTop=H-padB-footH;
 
   // the message: measure, shrink the big figure if it doesn't fit, then centre it between the profile line and the footer
   const preFs=(story?28:26)*k, postFs=(story?38:36)*k, lineFs=(story?19:17)*k, gapL=(story?18:12)*k, margin=(story?20:12)*k;
@@ -662,13 +687,14 @@ function drawCard(cv,fmt){
   x.font=F(800,postFs); M.post.forEach(l=>{ my=put(l,postFs,1.05,my,-.02*postFs); });
   my+=gapL; x.font=F(600,lineFs); M.line.forEach(l=>{ my=put(l,lineFs,1.3,my); });
 
+  if(!story) return;
   x.fillRect(pad,footTop,inner,2*k);
   let fy=footTop+14*k;
   x.font=F(800,qFs); fy=put(cardQ(),qFs,1.25,fy)+2*k;
   x.font=F(600,uFs); uL.forEach(l=>{ fy=put(l,uFs,1.35,fy); });
 }
 let storyCv=null;
-function cardBlob(fmt){ let cv=$("card"); if(fmt==="story"){ storyCv=storyCv||document.createElement("canvas"); drawCard(storyCv,"story"); cv=storyCv; }
+function cardBlob(fmt){ let cv=slideCv[slideIdx]; if(fmt==="story"){ storyCv=storyCv||document.createElement("canvas"); drawCard(storyCv,"story"); cv=storyCv; }
   /* built synchronously, so sharing still happens inside the tap that asked for it */
   const bin=atob(cv.toDataURL("image/jpeg",.92).split(",")[1]), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
   return new Blob([u],{type:"image/jpeg"}); }
@@ -701,21 +727,50 @@ $("shareStory").addEventListener("click",()=>{ if(canFiles&&shareImage("story","
 $("saveImg").addEventListener("click",()=>{ if(canFiles&&IOS&&shareImage("post","save",false)) return; download("post"); track("story_downloaded",{channel:"save",style:tone,tier:R.res}); });
 $("copyLink").addEventListener("click",()=>{ copyText(SHARE_URL||location.origin+FORM_URL).then(ok=>{ $("copyLinkTxt").textContent=ok?"Copied":"Copy link"; setTimeout(()=>{ $("copyLinkTxt").textContent="Copy link"; },1800); });
   track("share_clicked",{channel:"copy_link",style:tone,tier:R.res}); });
-$("tones").addEventListener("click",e=>{ const b=e.target.closest("[data-tone]"); if(!b) return; tone=b.dataset.tone; renderShare(); track("share_style_chosen",{style:tone,tier:R.res}); });
 const inviteText=()=>`How does your pay compare with people like you? Check in 30 seconds${linkTail()}`;
 $("friendBtn").addEventListener("click",e=>{ if(TOUCH&&navigator.share){ e.preventDefault(); navigator.share({text:inviteText()}).catch(()=>{}); } track("friend_invited",{tier:R.res}); });
 $("copyMsg").addEventListener("click",()=>{ copyText($("raiseMsg").textContent).then(ok=>{ $("copyMsg").textContent=ok?"Copied":"Copy message"; setTimeout(()=>{ $("copyMsg").textContent="Copy message"; },1800); }); track("raise_script_copied",{tier:R.res}); });
 
 /* ---------- result page ---------- */
-function renderShare(){
-  const el=$("tones"); el.hidden=TONE_LIST.length<2; el.style.setProperty("--n",TONE_LIST.length);
-  el.innerHTML=TONE_LIST.map(k=>`<button type="button" data-tone="${k}" aria-pressed="${k===tone}">${TONE_NAMES[k]}</button>`).join("");
-  drawCard($("card"),"post"); storyCv=null;
+/* ---------- card carousel ----------
+   One card per line (Savage, Hinglish, Straight). It moves on every 10 seconds until the visitor swipes, taps a dot or an arrow;
+   then it stays where they put it. The card on screen is the one that gets shared. */
+let slideCv=[], slideIdx=0, autoT=null, autoOn=false;
+const track_=()=>$("track"), step=()=>{ const t=track_(), s=t.children[0]; return s?s.offsetWidth+10:1; };
+function buildSlides(){
+  slideIdx=Math.max(0,TONE_LIST.indexOf(tone));
+  track_().innerHTML=TONE_LIST.map((k,i)=>`<div class="slide" role="group" aria-roledescription="slide" aria-label="Card ${i+1} of ${TONE_LIST.length}"><canvas class="card" width="1080" height="1350" role="img"></canvas></div>`).join("");
+  slideCv=[...track_().querySelectorAll("canvas")];
+  $("dots").innerHTML=TONE_LIST.length<2?"":TONE_LIST.map((k,i)=>`<button type="button" data-i="${i}" aria-label="Card ${i+1} of ${TONE_LIST.length}"><i></i></button>`).join("");
+  $("prevCard").hidden=$("nextCard").hidden=TONE_LIST.length<2;
+  drawSlides(); requestAnimationFrame(()=>{ track_().scrollLeft=slideIdx*step(); setSlide(slideIdx); });
+  let reduce=false; try{ reduce=matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
+  autoOn=TONE_LIST.length>1&&!reduce; armAuto();
+}
+function drawSlides(){ slideCv.forEach((cv,i)=>{ drawCard(cv,"post",TONE_LIST[i]); cv.setAttribute("aria-label","Your result card: "+cardAlt(TONE_LIST[i])); }); }
+function setSlide(i){
+  slideIdx=i; tone=TONE_LIST[i]; storyCv=null;
+  $("dots").classList.toggle("auto",autoOn);
+  [...$("dots").children].forEach((b,j)=>{ b.setAttribute("aria-current",j===i?"true":"false"); });
+  const a=$("dots").querySelector('[aria-current="true"] i'); if(a&&autoOn){ a.style.animation="none"; void a.offsetWidth; a.style.animation=""; }   // restart the 10-second fill
   const c=caption();
   $("shareMain").href="https://wa.me/?text="+encodeURIComponent(c);
   $("shareX").href="https://twitter.com/intent/tweet?text="+encodeURIComponent(c);
-  $("card").setAttribute("aria-label","Your result card: "+cardAlt());
 }
+let moving=null, movingT=0;   // while the code itself is sliding to a card, the scroll position is not the visitor's choice
+function goSlide(i,smooth){ const n=TONE_LIST.length; i=(i+n)%n; moving=i; clearTimeout(movingT); movingT=setTimeout(()=>{ moving=null; },1200); const to=i*step(); track_().scrollTo({left:to,behavior:smooth?"smooth":"auto"});
+  setTimeout(()=>{ if(Math.abs(track_().scrollLeft-to)>3) track_().scrollLeft=to; },1000);   // if a smooth slide stalls, jump
+  if(i!==slideIdx) setSlide(i); }
+function armAuto(){ clearTimeout(autoT); if(autoOn) autoT=setTimeout(()=>{ if(!document.hidden) goSlide(slideIdx+1,true); armAuto(); },10000); }
+function stopAuto(){ if(!autoOn) return; autoOn=false; clearTimeout(autoT); $("dots").classList.remove("auto"); }
+let scrollRaf=0;
+$("track").addEventListener("scroll",()=>{ cancelAnimationFrame(scrollRaf); scrollRaf=requestAnimationFrame(()=>{ if(moving!==null){ if(Math.abs(track_().scrollLeft-moving*step())<3) moving=null; return; } const i=Math.max(0,Math.min(TONE_LIST.length-1,Math.round(track_().scrollLeft/step()))); if(i!==slideIdx){ setSlide(i); if(!autoOn) track("share_style_chosen",{style:tone,tier:R.res}); } }); },{passive:true});
+["pointerdown","wheel","touchstart"].forEach(ev=>$("track").addEventListener(ev,stopAuto,{passive:true}));
+$("dots").addEventListener("click",e=>{ const b=e.target.closest("[data-i]"); if(!b) return; stopAuto(); goSlide(+b.dataset.i,true); });
+$("prevCard").addEventListener("click",()=>{ stopAuto(); goSlide(slideIdx-1,true); });
+$("nextCard").addEventListener("click",()=>{ stopAuto(); goSlide(slideIdx+1,true); });
+window.addEventListener("resize",()=>{ if(R) track_().scrollLeft=slideIdx*step(); });
+function renderShare(){ buildSlides(); }
 function whoTxt(){ const p=R.p, y=Math.round(p.yrs);
   return `${ROLE_PL[p.role]} ${y===0?"just starting out":`with ${y} year${y===1?"":"s"}' experience`}${NO_CITY_ON_CARD.includes(p.city)?"":" in "+CITIES[p.city][0]}`; }
 function renderMine(){
@@ -770,13 +825,15 @@ function showResult(a,pending){
   renderShare(); renderMine(); renderRaise(); renderRows(); renderFriend();
   try{ const pv=localStorage.getItem(PENDING_KEY); if(pv){ pending=pv; localStorage.removeItem(PENDING_KEY); } }catch(e){}
   if(pending) track("salary_check_submitted",{role:R.p.role,yrs:Math.round(R.p.yrs),emp_type:R.p.empType,city:R.p.city,edu:R.p.edu,tier:R.res,ctc_band:ctcBand(R.ctc),first:pending!=="edit"});
-  if(document.fonts&&document.fonts.load) Promise.all(["800 100px Sora","700 40px Sora","600 40px Sora"].map(f=>document.fonts.load(f))).then(()=>{ if(R) drawCard($("card"),"post"); },()=>{});
+  if(document.fonts&&document.fonts.load) Promise.all(["800 100px Sora","700 40px Sora","600 40px Sora"].map(f=>document.fonts.load(f))).then(()=>{ if(R) drawSlides(); },()=>{});
   try{ window.scrollTo(0,0); }catch(e){}
 }
 
 /* ---------- start ----------
    One check per device: answers are kept in this browser, and a returning visitor goes straight to their result.
    /salary-check/#edit reopens the form with the saved answers. #reset clears them, for testing. */
+if(TEST){ $("testbar").hidden=false;
+  $("testReset").addEventListener("click",()=>{ try{ localStorage.removeItem(SAVE_KEY); localStorage.removeItem(PENDING_KEY); }catch(e){} location.assign(FORM_URL); }); }
 (function boot(){
   if(location.hash==="#reset"){ try{ localStorage.removeItem(SAVE_KEY); localStorage.removeItem(PENDING_KEY); }catch(e){} try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} }
   const saved=loadSaved(); let a=null; try{ a=saved&&saved.answers?toV2(saved.answers):null; }catch(e){ a=null; }
