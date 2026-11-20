@@ -3,7 +3,7 @@ window.SALARY_CHECK_CONFIG = {
   shareUrl: "https://salary-checker-eight.vercel.app/salary-check/",       // public address of this page, used by the share buttons. TEMPORARY: switch back to https://finindex.co.in/salary-check/ once the domain works
   submitEndpoint: "",  // URL that receives each submission (e.g. the Google Sheet script); empty = nothing saved
   metaPixelId: "",     // Meta Pixel ID; empty = no Meta tracking
-  shareStyles: ["mrp", "brand", "report", "line", "classic"],  // share cards offered on the results page, first is the default: mrp = price tag, brand, report = report card for the employer, line = excuse or brag, classic = benchmark
+  shareTones: ["savage", "hinglish", "straight"],  // lines offered on the share card, first is the default; with one entry the switch disappears. Add ?tone=hinglish to the address to open on another
   dataUpdated: "November 2026",  // shown as "Updated ..." at the top and bottom; change it when the salary figures are refreshed
   highIncomeBands: ["10-15", "15-25", "25-50", "50+"],  // fixed-pay bands (₹ lakh) that count as 10 lakh and above
   highIncomeEvent: "SalaryCheck10LPlus"                 // Meta custom event sent for those visitors
